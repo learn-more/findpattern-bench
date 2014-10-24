@@ -1,15 +1,15 @@
 #ifndef AFFFSDD_H
 #define AFFFSDD_H
 
-bool CompareByteArray(PBYTE ByteArray1, PCHAR ByteArray2,  DWORD Length)
+bool CompareByteArray(PBYTE Data, PBYTE Signature)
 {
-	for (DWORD i = 1; i < Length; i++)
+	for (; *Signature; ++Signature, ++Data)
 	{
-		if (ByteArray2[i] == '\x00')
+		if (*Signature == '\x00')
 		{
 			continue;
 		}
-		if (ByteArray1[i] != (BYTE)ByteArray2[i])
+		if (*Data != *Signature)
 		{
 			return false;
 		}
@@ -17,11 +17,10 @@ bool CompareByteArray(PBYTE ByteArray1, PCHAR ByteArray2,  DWORD Length)
 	return true;
 }
 
-PBYTE FindSignature(PBYTE BaseAddress, DWORD ImageSize, PCHAR Signature)
+PBYTE FindSignature(PBYTE BaseAddress, DWORD ImageSize, PBYTE Signature)
 {
-	DWORD Length = strlen(Signature);
 	BYTE First = Signature[0];
-	PBYTE Max = BaseAddress + ImageSize - Length;
+	PBYTE Max = BaseAddress + ImageSize - strlen((PCHAR) Signature);
 
 	for (; BaseAddress < Max; ++BaseAddress)
 	{
@@ -29,7 +28,7 @@ PBYTE FindSignature(PBYTE BaseAddress, DWORD ImageSize, PCHAR Signature)
 		{
 			continue;
 		}
-		if (CompareByteArray(BaseAddress, Signature, Length))
+		if (CompareByteArray(BaseAddress, Signature))
 		{
 			return BaseAddress;
 		}
@@ -58,15 +57,15 @@ struct AFFFSDD : public BenchBase
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 	{
-		return FindSignature(baseAddress, size, mPattern);
+		return FindSignature(baseAddress, size, (PBYTE) mPattern);
 	}
 
 	virtual const char* name() const
 	{
 		return "afffsdd";
 	}
-	PCHAR mPattern = reinterpret_cast<PCHAR>("");
-	PCHAR mMask = reinterpret_cast<PCHAR>("");
+	PCHAR mPattern; // = reinterpret_cast<PCHAR>("");
+	PCHAR mMask; // = reinterpret_cast<PCHAR>("");
 };
 
 REGISTER(AFFFSDD);
