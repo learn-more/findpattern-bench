@@ -50,6 +50,10 @@ namespace DarthTon
 {
 #include "patterns/DarthTon.h"
 }
+namespace kokole
+{
+#include "patterns/kokole.h"
+}
 
 int main()
 {
