@@ -1,15 +1,21 @@
 #ifndef DARTHTON_H
 #define DARTHTON_H
 
+// http://www.unknowncheats.me/forum/c-and-c/125497-findpattern-benchmark.html#post1064488
 
-LPVOID Search(char* pPattern, size_t patternSize, uint8_t wildcard, uint8_t* scanStart, size_t scanSize)
+LPVOID Search(uint8_t* pPattern, size_t patternSize, uint8_t wildcard, uint8_t* scanStart, size_t scanSize)
 {
-	auto res = std::search(
-		scanStart, scanStart + scanSize, pPattern, pPattern + patternSize,
-		[&wildcard](uint8_t val1, uint8_t val2) { return (val1 == val2 || val2 == wildcard); }
-	);
+	for (uint8_t *ptr = scanStart; ptr < scanStart + scanSize - patternSize; ++ptr)
+	{
+		for (size_t i = 0; i < patternSize; ++i)
+			if (ptr[i] != pPattern[i] && pPattern[i] != wildcard)
+				goto end;
 
-	return (res >= scanStart + scanSize) ? nullptr : res;
+		return ptr;
+	end:;
+	}
+
+	return nullptr;
 }
 
 
@@ -34,7 +40,7 @@ struct DARTH_TON : public BenchBase
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 	{
-		return Search(pattern, strlen(pattern), wildcard, baseAddress, size);
+		return Search(reinterpret_cast<uint8_t*>(pattern), strlen(pattern), wildcard, baseAddress, size);
 	}
 	virtual const char* name() const
 	{

@@ -18,9 +18,9 @@ struct BenchBase
 		__try {
 			init(Tests::First);
 			runOne(start, size);		// see if it stops nicely at the end.
-			//*(start + size-1) = szPattern1[0];
-			//runOne(start, size);		// see if it stops nicely while matching a signature
-			//*(start + size-1) = 0;
+			*(start + size-1) = szPattern1[0];
+			runOne(start, size);		// see if it stops nicely while matching a signature
+			*(start + size-1) = 0;
 			runPatt(Tests::First, start + size - 100, szPattern1, _countof(szPattern1) - 1, 7);
 			runPatt(Tests::Second, start + size - 50, szPattern2, _countof(szPattern2) - 1, 11);
 			return true;

@@ -5,27 +5,29 @@
 // Original code by learn_more
 // Fix based on suggestion from stevemk14ebr : http://www.unknowncheats.me/forum/1056782-post13.html
 
-#define INRANGE(x,a,b)    (x >= a && x <= b) 
-#define getBits( x )    (INRANGE((x&(~0x20)),'A','F') ? ((x&(~0x20)) - 'A' + 0xa) : (INRANGE(x,'0','9') ? x - '0' : 0))
-#define getByte( x )    (getBits(x[0]) << 4 | getBits(x[1]))
+#define INRANGE(x,a,b)		(x >= a && x <= b) 
+#define getBits( x )		(INRANGE(x,'0','9') ? (x - '0') : ((x&(~0x20)) - 'A' + 0xa))
+#define getByte( x )		(getBits(x[0]) << 4 | getBits(x[1]))
 
-PBYTE findPattern(PBYTE rangeStart, PBYTE rangeEnd, const char* pattern)
+PBYTE findPattern(const PBYTE rangeStart, const PBYTE rangeEnd, const char* pattern)
 {
-	const char* pat = pattern;
+	const unsigned char* pat = reinterpret_cast<const unsigned char*>(pattern);
 	PBYTE firstMatch = 0;
-	for (PBYTE pCur = rangeStart; pCur < rangeEnd; pCur++)
-	{
-		if (!*pat) return firstMatch;
-		if (*(PBYTE)pat == '\?' || *pCur == getByte(pat)) {
-			if (!firstMatch) firstMatch = pCur;
-			if (!pat[2]) return firstMatch;
-			if (*(PWORD)pat == '\?\?' || *(PBYTE)pat != '\?') pat += 3;
-			else pat += 2;		//one '?'
-		} else {
-			if (firstMatch) {
-				pCur = firstMatch;
+	for (PBYTE pCur = rangeStart; pCur < rangeEnd; ++pCur ) {
+		if (*(PBYTE)pat == (BYTE)'\?' || *pCur == getByte(pat)) {
+			if (!firstMatch) {
+				firstMatch = pCur;
 			}
-			pat = pattern;
+			if (!pat[2]) {
+				return firstMatch;
+			}
+			pat += (*(PWORD)pat == (WORD)'\?\?' || *(PBYTE)pat != (BYTE)'\?') ? 3 : 2;
+			if (!*pat) {
+				return firstMatch;
+			}
+		} else if (firstMatch) {
+			pCur = firstMatch;
+			pat = reinterpret_cast<const unsigned char*>(pattern);
 			firstMatch = 0;
 		}
 	}
@@ -62,5 +64,86 @@ struct LM : public BenchBase
 
 
 REGISTER(LM);
+
+
+inline
+bool isMatch(const PBYTE addr, const PBYTE pat, const PBYTE msk)
+{
+	for (size_t n = 0; msk[n]; ++n) {
+		if (addr[n] != pat[n] && msk[n] != (BYTE)'?') {
+			return false;
+		}
+	}
+	return true;
+}
+
+PBYTE findPattern_v2(const PBYTE rangeStart, DWORD len, const char* pattern)
+{
+	size_t l = strlen(pattern);
+	PBYTE patt_base = static_cast<PBYTE>(_alloca(l >> 1));
+	PBYTE msk_base = static_cast<PBYTE>(_alloca(l >> 1));
+	PBYTE pat = patt_base;
+	PBYTE msk = msk_base;
+	l = 0;
+	while (*pattern) {
+		if (*(PBYTE)pattern == (BYTE)'\?') {
+			*pat++ = 0;
+			*msk++ = '?';
+			pattern += ((*(PWORD)pattern == (WORD)'\?\?') ? 3 : 2);
+		} else {
+			*pat++ = getByte(pattern);
+			*msk++ = 'x';
+			pattern += 3;
+		}
+		l++;
+	}
+	*msk = 0;
+	pat = patt_base;
+	msk = msk_base;
+	for (DWORD n = 0; n < (len -l); ++n)
+	{
+		if (isMatch(rangeStart + n, patt_base, msk_base)) {
+			return rangeStart + n;
+		}
+	}
+	return NULL;
+}
+
+struct LM2 : public BenchBase
+{
+	virtual void init(Tests test)
+	{
+		switch (test)
+		{
+		case Tests::First:
+			mPattern = "45 43 45 55 33 9a fa ? ? ? ? 45 68 21";
+			break;
+		case Tests::Second:
+			mPattern = "aa aa aa aa aa aa aa aa aa bb aa ? ? ? ? 45 68 21";
+			break;
+		default:
+			break;
+		}
+	}
+
+	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
+	{
+		return findPattern_v2(baseAddress, size, mPattern);
+	}
+	virtual const char* name() const
+	{
+		return "learn_more v2";
+	}
+	const char* mPattern = "";
+};
+
+
+REGISTER(LM2);
+
+
+
+
+
+
 
 #endif // LEARN_MORE_H
