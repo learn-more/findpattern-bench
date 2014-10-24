@@ -2,6 +2,8 @@
 #define LEARN_MORE_H
 
 // http://www.unknowncheats.me/forum/c-and-c/77419-findpattern.html#post650040
+// Original code by learn_more
+// Fix based on suggestion from stevemk14ebr : http://www.unknowncheats.me/forum/1056782-post13.html
 
 #define INRANGE(x,a,b)    (x >= a && x <= b) 
 #define getBits( x )    (INRANGE((x&(~0x20)),'A','F') ? ((x&(~0x20)) - 'A' + 0xa) : (INRANGE(x,'0','9') ? x - '0' : 0))
@@ -18,8 +20,11 @@ PBYTE findPattern(PBYTE rangeStart, PBYTE rangeEnd, const char* pattern)
 			if (!firstMatch) firstMatch = pCur;
 			if (!pat[2]) return firstMatch;
 			if (*(PWORD)pat == '\?\?' || *(PBYTE)pat != '\?') pat += 3;
-			else pat += 2;    //one ?
+			else pat += 2;		//one '?'
 		} else {
+			if (firstMatch) {
+				pCur = firstMatch;
+			}
 			pat = pattern;
 			firstMatch = 0;
 		}
