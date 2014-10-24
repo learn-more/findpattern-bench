@@ -3,7 +3,7 @@
 
 bool CompareByteArray(PBYTE ByteArray1, PCHAR ByteArray2,  DWORD Length)
 {
-	for (DWORD i = 0; i < Length; i++)
+	for (DWORD i = 1; i < Length; i++)
 	{
 		if (ByteArray2[i] == '\x00')
 		{
@@ -17,24 +17,25 @@ bool CompareByteArray(PBYTE ByteArray1, PCHAR ByteArray2,  DWORD Length)
 	return true;
 }
 
-PBYTE FindSignature(LPVOID BaseAddress, DWORD ImageSize, PCHAR Signature)
+PBYTE FindSignature(PBYTE BaseAddress, DWORD ImageSize, PCHAR Signature)
 {
-	PBYTE Address = NULL;
-	PBYTE Buffer = (PBYTE)BaseAddress;
-
 	DWORD Length = strlen(Signature);
+	BYTE First = Signature[0];
+	PBYTE Max = BaseAddress + ImageSize - Length;
 
-	for (DWORD i = 0; i < (ImageSize - Length); i++)
+	for (; BaseAddress < Max; ++BaseAddress)
 	{
-		if (CompareByteArray((Buffer + i), Signature, Length))
+		if (*BaseAddress != First)
 		{
-			Address = (PBYTE)BaseAddress + i;
-			break;
+			continue;
+		}
+		if (CompareByteArray(BaseAddress, Signature, Length))
+		{
+			return BaseAddress;
 		}
 	}
-	return Address;
+	return NULL;
 }
-
 
 struct AFFFSDD : public BenchBase
 {
