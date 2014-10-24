@@ -1,52 +1,42 @@
-#ifndef FDSASDF_H
-#define FDSASDF_H
+#ifndef AFFFSDD_H
+#define AFFFSDD_H
 
-int CompareByteArray(PBYTE ByteArray1, PCHAR ByteArray2, PCHAR Mask, DWORD Length)
+bool CompareByteArray(PBYTE ByteArray1, PCHAR ByteArray2,  DWORD Length)
 {
-	DWORD nextStart = 0;
-	char start = ByteArray2[0];
 	for (DWORD i = 0; i < Length; i++)
 	{
-		if (Mask[i] == '?')
+		if (ByteArray2[i] == '\x00')
 		{
 			continue;
 		}
-		if (ByteArray1[i] == start)
-		{
-			nextStart = i;
-		}
 		if (ByteArray1[i] != (BYTE)ByteArray2[i])
 		{
-			return nextStart;
+			return false;
 		}
 	}
-	return -1;
+	return true;
 }
 
-PBYTE FindSignature(LPVOID BaseAddress, DWORD ImageSize, PCHAR Signature, PCHAR Mask)
+PBYTE FindSignature(LPVOID BaseAddress, DWORD ImageSize, PCHAR Signature)
 {
 	PBYTE Address = NULL;
 	PBYTE Buffer = (PBYTE)BaseAddress;
 
-	DWORD Length = strlen(Mask);
+	DWORD Length = strlen(Signature);
 
 	for (DWORD i = 0; i < (ImageSize - Length); i++)
 	{
-		int result = CompareByteArray((Buffer + i), Signature, Mask, Length);
-		if (result < 0)
+		if (CompareByteArray((Buffer + i), Signature, Length))
 		{
 			Address = (PBYTE)BaseAddress + i;
 			break;
-		} else
-		{
-			i += result;
 		}
 	}
 	return Address;
 }
 
 
-struct FDSASDF : public BenchBase
+struct AFFFSDD : public BenchBase
 {
 	virtual void init(Tests test)
 	{
@@ -54,11 +44,11 @@ struct FDSASDF : public BenchBase
 		{
 		case Tests::First:
 			mPattern = "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21";
-			mMask = "xxxxxxx????xxx";
+			//mMask = "xxxxxxx????xxx";
 			break;
 		case Tests::Second:
 			mPattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21";
-			mMask = "xxxxxxxxxxx????xxx";
+			//mMask = "xxxxxxxxxxx????xxx";
 			break;
 		default:
 			break;
@@ -67,17 +57,17 @@ struct FDSASDF : public BenchBase
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 	{
-		return FindSignature(baseAddress, size, mPattern, mMask);
+		return FindSignature(baseAddress, size, mPattern);
 	}
 
 	virtual const char* name() const
 	{
-		return "fdsasdf";
+		return "afffsdd";
 	}
 	PCHAR mPattern = reinterpret_cast<PCHAR>("");
 	PCHAR mMask = reinterpret_cast<PCHAR>("");
 };
 
-REGISTER(FDSASDF)
+REGISTER(AFFFSDD);
 
-#endif // FDSASDF_H
+#endif // AFFFSDD_H
