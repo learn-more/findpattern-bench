@@ -3,19 +3,36 @@
 
 // http://www.unknowncheats.me/forum/c-and-c/125497-findpattern-benchmark.html#post1064488
 
-LPVOID Search(uint8_t* pPattern, size_t patternSize, uint8_t wildcard, uint8_t* scanStart, size_t scanSize)
+// Boyer-Moore-Horspool with wildcards implementation
+inline LPVOID Search( uint8_t* pPattern, size_t patternSize, uint8_t wildcard, uint8_t* pScanPos, size_t scanSize )
 {
-	for (uint8_t *ptr = scanStart; ptr < scanStart + scanSize - patternSize; ++ptr)
-	{
-		for (size_t i = 0; i < patternSize; ++i)
-			if (ptr[i] != pPattern[i] && pPattern[i] != wildcard)
-				goto end;
+    size_t bad_char_skip[UCHAR_MAX + 1];
+    uint8_t* scanEnd = pScanPos + scanSize - patternSize;
+    size_t idx = 0;
+    size_t last = patternSize - 1;
 
-		return ptr;
-	end:;
-	}
+    // Get last wildcard position
+    for (idx = last; idx > 0 && pPattern[idx] != wildcard; --idx);
+    size_t diff = patternSize - idx;
 
-	return nullptr;
+    // Prepare shift table
+    for (idx = 0; idx <= UCHAR_MAX; ++idx)
+        bad_char_skip[idx] = diff;
+    for (idx = 0; idx < last; ++idx)
+        bad_char_skip[pPattern[idx]] = last - idx;
+
+    // Search
+    for (; pScanPos < scanEnd; pScanPos += bad_char_skip[pScanPos[last]])
+    {
+        for (idx = last; idx > 0; --idx)
+            if (pPattern[idx] != wildcard && pScanPos[idx] != pPattern[idx])
+                goto skip;
+
+        return pScanPos;
+    skip:;
+    }
+
+    return nullptr;
 }
 
 
@@ -26,12 +43,10 @@ struct DARTH_TON : public BenchBase
 		switch (test)
 		{
 		case Tests::First:
-			pattern = "\x45\x43\x45\x55\x33\x9a\xfa\xcc\xcc\xcc\xcc\x45\x68\x21";
-			wildcard = 0xCC;
+			pattern = "\x45\x43\x45\x55\x33\x9a\xfa\xCC\xCC\xCC\xCC\x45\x68\x21";
 			break;
 		case Tests::Second:
-			pattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\xcc\xcc\xcc\xcc\x45\x68\x21";
-			wildcard = 0xCC;
+			pattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\xCC\xCC\xCC\xCC\x45\x68\x21";
 			break;
 		default:
 			break;
@@ -40,7 +55,7 @@ struct DARTH_TON : public BenchBase
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 	{
-		return Search(reinterpret_cast<uint8_t*>(pattern), strlen(pattern), wildcard, baseAddress, size);
+        return Search( reinterpret_cast<uint8_t*>(pattern), strlen( pattern ), 0xCC, baseAddress, size );
 	}
 	virtual const char* name() const
 	{
@@ -48,7 +63,6 @@ struct DARTH_TON : public BenchBase
 	}
 
 	char* pattern = "";
-	uint8_t wildcard = 0;
 };
 
 REGISTER(DARTH_TON);
