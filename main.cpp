@@ -42,13 +42,17 @@ namespace learn_more
 {
 #include "patterns/learn_more.h"
 }
-namespace fdsasdf
+namespace afffsdd
 {
-#include "patterns/fdsasdf.h"
+#include "patterns/afffsdd.h"
 }
 namespace DarthTon
 {
 #include "patterns/DarthTon.h"
+}
+namespace kokole
+{
+#include "patterns/kokole.h"
 }
 
 int main()
