@@ -18,9 +18,6 @@ PBYTE findPattern(const PBYTE rangeStart, const PBYTE rangeEnd, const char* patt
 			if (!firstMatch) {
 				firstMatch = pCur;
 			}
-			if (!pat[2]) {
-				return firstMatch;
-			}
 			pat += (*(PWORD)pat == (WORD)'\?\?' || *(PBYTE)pat != (BYTE)'\?') ? 3 : 2;
 			if (!*pat) {
 				return firstMatch;
@@ -69,12 +66,13 @@ REGISTER(LM);
 inline
 bool isMatch(const PBYTE addr, const PBYTE pat, const PBYTE msk)
 {
-	for (size_t n = 0; msk[n]; ++n) {
-		if (addr[n] != pat[n] && msk[n] != (BYTE)'?') {
-			return false;
+	size_t n = 0;
+	while (addr[n] == pat[n] || msk[n] == (BYTE)'?') {
+		if (!msk[++n]) {
+			return true;
 		}
 	}
-	return true;
+	return false;
 }
 
 PBYTE findPattern_v2(const PBYTE rangeStart, DWORD len, const char* pattern)
