@@ -8,9 +8,11 @@
 #include <algorithm>
 
 const char szPattern1[] = "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21";
+const size_t szPattern1Len = _countof(szPattern1) - 1;
 const char szWildcard1[] = "xxxxxxx????xxx";
 
 const char szPattern2[] = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21";
+const size_t szPattern2Len = _countof(szPattern2) - 1;
 const char szWildcard2[] = "xxxxxxxxxxx????xxx";
 
 enum { kNumPages = 22 };
