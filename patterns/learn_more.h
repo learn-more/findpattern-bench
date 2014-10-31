@@ -9,136 +9,144 @@
 #define getBits( x )		(INRANGE(x,'0','9') ? (x - '0') : ((x&(~0x20)) - 'A' + 0xa))
 #define getByte( x )		(getBits(x[0]) << 4 | getBits(x[1]))
 
-PBYTE findPattern(const PBYTE rangeStart, const PBYTE rangeEnd, const char* pattern)
+namespace
 {
-	const unsigned char* pat = reinterpret_cast<const unsigned char*>(pattern);
-	PBYTE firstMatch = 0;
-	for (PBYTE pCur = rangeStart; pCur < rangeEnd; ++pCur ) {
-		if (*(PBYTE)pat == (BYTE)'\?' || *pCur == getByte(pat)) {
-			if (!firstMatch) {
-				firstMatch = pCur;
+
+	PBYTE findPattern(const PBYTE rangeStart, const PBYTE rangeEnd, const char* pattern)
+	{
+		const unsigned char* pat = reinterpret_cast<const unsigned char*>(pattern);
+		PBYTE firstMatch = 0;
+		for (PBYTE pCur = rangeStart; pCur < rangeEnd; ++pCur) {
+			if (*(PBYTE)pat == (BYTE)'\?' || *pCur == getByte(pat)) {
+				if (!firstMatch) {
+					firstMatch = pCur;
+				}
+				pat += (*(PWORD)pat == (WORD)'\?\?' || *(PBYTE)pat != (BYTE)'\?') ? 3 : 2;
+				if (!*pat) {
+					return firstMatch;
+				}
+			} else if (firstMatch) {
+				pCur = firstMatch;
+				pat = reinterpret_cast<const unsigned char*>(pattern);
+				firstMatch = 0;
 			}
-			pat += (*(PWORD)pat == (WORD)'\?\?' || *(PBYTE)pat != (BYTE)'\?') ? 3 : 2;
-			if (!*pat) {
-				return firstMatch;
+		}
+		return NULL;
+	}
+
+	struct LM : public BenchBase
+	{
+		virtual void init(Tests test)
+		{
+			switch (test)
+			{
+			case Tests::First:
+				mPattern = "45 43 45 55 33 9a fa ? ? ? ? 45 68 21";
+				break;
+			case Tests::Second:
+				mPattern = "aa aa aa aa aa aa aa aa aa bb aa ? ? ? ? 45 68 21";
+				break;
+			default:
+				break;
 			}
-		} else if (firstMatch) {
-			pCur = firstMatch;
-			pat = reinterpret_cast<const unsigned char*>(pattern);
-			firstMatch = 0;
 		}
-	}
-	return NULL;
-}
 
-struct LM : public BenchBase
-{
-	virtual void init(Tests test)
-	{
-		switch (test)
+		virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 		{
-		case Tests::First:
-			mPattern = "45 43 45 55 33 9a fa ? ? ? ? 45 68 21";
-			break;
-		case Tests::Second:
-			mPattern = "aa aa aa aa aa aa aa aa aa bb aa ? ? ? ? 45 68 21";
-			break;
-		default:
-			break;
+			return findPattern(baseAddress, baseAddress + size, mPattern);
 		}
-	}
-
-	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
-	{
-		return findPattern(baseAddress, baseAddress + size, mPattern);
-	}
-	virtual const char* name() const
-	{
-		return "learn_more";
-	}
-	const char* mPattern = "";
-};
-
-
-REGISTER(LM);
-
-
-inline
-bool isMatch(const PBYTE addr, const PBYTE pat, const PBYTE msk)
-{
-	size_t n = 0;
-	while (addr[n] == pat[n] || msk[n] == (BYTE)'?') {
-		if (!msk[++n]) {
-			return true;
-		}
-	}
-	return false;
-}
-
-PBYTE findPattern_v2(const PBYTE rangeStart, DWORD len, const char* pattern)
-{
-	size_t l = strlen(pattern);
-	PBYTE patt_base = static_cast<PBYTE>(_alloca(l >> 1));
-	PBYTE msk_base = static_cast<PBYTE>(_alloca(l >> 1));
-	PBYTE pat = patt_base;
-	PBYTE msk = msk_base;
-	l = 0;
-	while (*pattern) {
-		if (*(PBYTE)pattern == (BYTE)'\?') {
-			*pat++ = 0;
-			*msk++ = '?';
-			pattern += ((*(PWORD)pattern == (WORD)'\?\?') ? 3 : 2);
-		} else {
-			*pat++ = getByte(pattern);
-			*msk++ = 'x';
-			pattern += 3;
-		}
-		l++;
-	}
-	*msk = 0;
-	pat = patt_base;
-	msk = msk_base;
-	for (DWORD n = 0; n < (len -l); ++n)
-	{
-		if (isMatch(rangeStart + n, patt_base, msk_base)) {
-			return rangeStart + n;
-		}
-	}
-	return NULL;
-}
-
-struct LM2 : public BenchBase
-{
-	virtual void init(Tests test)
-	{
-		switch (test)
+		virtual const char* name() const
 		{
-		case Tests::First:
-			mPattern = "45 43 45 55 33 9a fa ? ? ? ? 45 68 21";
-			break;
-		case Tests::Second:
-			mPattern = "aa aa aa aa aa aa aa aa aa bb aa ? ? ? ? 45 68 21";
-			break;
-		default:
-			break;
+			return "learn_more";
 		}
-	}
+		const char* mPattern = "";
+	};
 
-	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
+
+	REGISTER(LM);
+
+} // namespace
+
+
+namespace
+{
+
+	inline
+		bool isMatch(const PBYTE addr, const PBYTE pat, const PBYTE msk)
 	{
-		return findPattern_v2(baseAddress, size, mPattern);
+			size_t n = 0;
+			while (addr[n] == pat[n] || msk[n] == (BYTE)'?') {
+				if (!msk[++n]) {
+					return true;
+				}
+			}
+			return false;
 	}
-	virtual const char* name() const
+
+	PBYTE findPattern_v2(const PBYTE rangeStart, DWORD len, const char* pattern)
 	{
-		return "learn_more v2";
+		size_t l = strlen(pattern);
+		PBYTE patt_base = static_cast<PBYTE>(_alloca(l >> 1));
+		PBYTE msk_base = static_cast<PBYTE>(_alloca(l >> 1));
+		PBYTE pat = patt_base;
+		PBYTE msk = msk_base;
+		l = 0;
+		while (*pattern) {
+			if (*(PBYTE)pattern == (BYTE)'\?') {
+				*pat++ = 0;
+				*msk++ = '?';
+				pattern += ((*(PWORD)pattern == (WORD)'\?\?') ? 3 : 2);
+			} else {
+				*pat++ = getByte(pattern);
+				*msk++ = 'x';
+				pattern += 3;
+			}
+			l++;
+		}
+		*msk = 0;
+		pat = patt_base;
+		msk = msk_base;
+		for (DWORD n = 0; n < (len - l); ++n)
+		{
+			if (isMatch(rangeStart + n, patt_base, msk_base)) {
+				return rangeStart + n;
+			}
+		}
+		return NULL;
 	}
-	const char* mPattern = "";
-};
+
+	struct LM2 : public BenchBase
+	{
+		virtual void init(Tests test)
+		{
+			switch (test)
+			{
+			case Tests::First:
+				mPattern = "45 43 45 55 33 9a fa ? ? ? ? 45 68 21";
+				break;
+			case Tests::Second:
+				mPattern = "aa aa aa aa aa aa aa aa aa bb aa ? ? ? ? 45 68 21";
+				break;
+			default:
+				break;
+			}
+		}
+
+		virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
+		{
+			return findPattern_v2(baseAddress, size, mPattern);
+		}
+		virtual const char* name() const
+		{
+			return "learn_more v2";
+		}
+		const char* mPattern = "";
+	};
 
 
-REGISTER(LM2);
+	REGISTER(LM2);
 
-
+} // namespace
 
 
 
