@@ -68,21 +68,11 @@ DWORD FindSignature( DWORD base, DWORD size, unsigned char* pattern, unsigned in
 	return NULL;
 }
 
-struct MIKE : public BenchBase
+struct MIKE : public PatternScanner
 {
-	virtual void init(Tests test)
+	virtual void init(Pattern* pattern)
 	{
-		switch (test)
-		{
-		case Tests::First:
-			mPattern = reinterpret_cast<unsigned char*>("45 43 45 55 33 9A FA ? ? ? ? 45 68 21");
-			break;
-		case Tests::Second:
-			mPattern = reinterpret_cast<unsigned char*>("AA AA AA AA AA AA AA AA AA BB AA ? ? ? ? 45 68 21");
-			break;
-		default:
-			break;
-		}
+        mPattern = reinterpret_cast<unsigned char*>(pattern->ida);
 	}
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
@@ -98,6 +88,6 @@ struct MIKE : public BenchBase
 };
 
 
-REGISTER(MIKE);
+REG_SCAN(MIKE);
 
 #endif // M_I_K_E_H

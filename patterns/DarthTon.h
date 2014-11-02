@@ -36,35 +36,29 @@ inline LPVOID Search( uint8_t* pPattern, size_t patternSize, uint8_t wildcard, u
 }
 
 
-struct DARTH_TON : public BenchBase
+struct DARTH_TON : public PatternScanner
 {
-	virtual void init(Tests test)
+    virtual void init( Pattern* pattern )
 	{
-		switch (test)
-		{
-		case Tests::First:
-			pattern = "\x45\x43\x45\x55\x33\x9a\xfa\xCC\xCC\xCC\xCC\x45\x68\x21";
-			break;
-		case Tests::Second:
-			pattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\xCC\xCC\xCC\xCC\x45\x68\x21";
-			break;
-		default:
-			break;
-		}
+        _pattern = pattern->raw;
+        len = pattern->length;
+        wildcard = pattern->wildcard;
 	}
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 	{
-        return Search( reinterpret_cast<uint8_t*>(pattern), strlen( pattern ), 0xCC, baseAddress, size );
+        return Search( reinterpret_cast<uint8_t*>(_pattern), len, wildcard, baseAddress, size );
 	}
 	virtual const char* name() const
 	{
 		return "DarthTon";
 	}
 
-	char* pattern = "";
+    char* _pattern;
+    size_t len;
+    unsigned char wildcard;
 };
 
-REGISTER(DARTH_TON);
+REG_SCAN(DARTH_TON);
 
 #endif // DARTHTON_H

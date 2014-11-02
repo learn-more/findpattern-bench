@@ -22,23 +22,12 @@ BYTE* FindPattern(BYTE* dwAddress, DWORD dwSize, BYTE* pbSig, char* szMask)
 	return 0;
 }
 
-struct KOKOLE : public BenchBase
+struct KOKOLE : public PatternScanner
 {
-	virtual void init(Tests test)
+	virtual void init(Pattern* pattern)
 	{
-		switch (test)
-		{
-		case Tests::First:
-			mPattern = "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21";
-			mMask = "xxxxxxx????xxx";
-			break;
-		case Tests::Second:
-			mPattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21";
-			mMask = "xxxxxxxxxxx????xxx";
-			break;
-		default:
-			break;
-		}
+        mPattern = pattern->raw;
+        mMask = pattern->mask;
 	}
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
@@ -54,6 +43,6 @@ struct KOKOLE : public BenchBase
 	PCHAR mMask; // = reinterpret_cast<PCHAR>("");
 };
 
-REGISTER(KOKOLE);
+REG_SCAN(KOKOLE);
 
 #endif // KOKOLE_H

@@ -43,23 +43,12 @@ namespace
 		return Address;
 	}
 
-	struct TRIPPEH : public BenchBase
+    struct TRIPPEH: public PatternScanner
 	{
-		virtual void init(Tests test)
+		virtual void init(Pattern* pattern)
 		{
-			switch (test)
-			{
-			case Tests::First:
-				mPattern = "45 43 45 55 33 9a fa 00 00 00 00 45 68 21";
-				mMask = "xxxxxxx????xxx";
-				break;
-			case Tests::Second:
-				mPattern = "aa aa aa aa aa aa aa aa aa bb aa 00 00 00 00 45 68 21";
-				mMask = "xxxxxxxxxxx????xxx";
-				break;
-			default:
-				break;
-			}
+            mPattern = pattern->hybrid;
+            mMask = pattern->mask;
 		}
 
 		virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
@@ -74,19 +63,19 @@ namespace
 		PCHAR mMask = "";
 	};
 
-	REGISTER(TRIPPEH);
+    REG_SCAN( TRIPPEH );
 
 } // namespace
 
 
-namespace
+namespace ns_TRIPPEH_V2
 {
-
-	BOOL CompareByteArray(PBYTE ByteArray1, PBYTE ByteArray2, DWORD Length)
+    // Update: DarthTon: added 'wildcard' for proper wildcard support
+	BOOL CompareByteArray(PBYTE ByteArray1, PBYTE ByteArray2, DWORD Length, BYTE wildcard)
 	{
 		for (DWORD i = 0; i < Length; i++)
 		{
-			if (ByteArray2[i] != 0xCC && ByteArray1[i] != ByteArray2[i])
+            if (ByteArray2[i] != wildcard && ByteArray1[i] != ByteArray2[i])
 			{
 				return FALSE;
 			}
@@ -95,13 +84,14 @@ namespace
 		return TRUE;
 	}
 
-	PBYTE GetAddress(PBYTE BaseAddress, DWORD ImageSize, PBYTE ByteArray, DWORD Length)
+    // Update: DarthTon: added 'wildcard' for proper wildcard support
+	PBYTE GetAddress(PBYTE BaseAddress, DWORD ImageSize, PBYTE ByteArray, DWORD Length, BYTE wildcard)
 	{
 		PBYTE Address = 0x00000000;
 
 		for (DWORD i = 0; i < (ImageSize - Length); i++)
 		{
-			if (CompareByteArray((BaseAddress + i), ByteArray, Length))
+			if (CompareByteArray((BaseAddress + i), ByteArray, Length, wildcard))
 			{
 				Address = (PBYTE)BaseAddress + i;
 				break;
@@ -111,28 +101,18 @@ namespace
 		return Address;
 	}
 
-	struct TRIPPEH_V2 : public BenchBase
+    struct TRIPPEH_V2: public PatternScanner
 	{
-		virtual void init(Tests test)
-		{
-			switch (test)
-			{
-			case Tests::First:
-				mPattern = (PBYTE)"\x45\x43\x45\x55\x33\x9a\xfa\xCC\xCC\xCC\xCC\x45\x68\x21";
-				mLength = 14;
-				break;
-			case Tests::Second:
-				mPattern = (PBYTE)"\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\xCC\xCC\xCC\xCC\x45\x68\x21";
-				mLength = 18;
-				break;
-			default:
-				break;
-			}
-		}
+        virtual void init( Pattern* pattern )
+        {
+            mPattern = (PBYTE)pattern->raw;
+            mLength = pattern->length;
+            mWildcard = pattern->wildcard;
+        }
 
 		virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 		{
-			return GetAddress(baseAddress, size, mPattern, mLength);
+			return GetAddress(baseAddress, size, mPattern, mLength, mWildcard);
 		}
 		virtual const char* name() const
 		{
@@ -140,14 +120,15 @@ namespace
 		}
 		PBYTE mPattern;
 		DWORD mLength;
+        BYTE mWildcard;
 	};
 
-	REGISTER(TRIPPEH_V2);
+    REG_SCAN( TRIPPEH_V2 );
 
 } // namespace
 
 
-namespace
+namespace ns_TRIPPEH_V3
 {
 
 	BOOL CompareByteArray(PBYTE ByteArray1, PBYTE ByteArray2, DWORD Size, BYTE Wildcard)
@@ -188,30 +169,35 @@ namespace
 		return Address;
 	}
 
-	struct TRIPPEH_V3 : public BenchBase
+    struct TRIPPEH_V3: public PatternScanner
 	{
-		virtual void init(Tests test)
-		{
-			switch (test)
-			{
-			case Tests::First:
-				//m_pattern = "\x45\x43\x45\x55\x33\x9a\xfa\xcc\xcc\xcc\xcc\x45\x68\x21";
-				m_pattern = "45 43 45 55 33 9a fa cc cc cc cc 45 68 21";
-				m_size = 14;
-				//m_skip = 20;
-				m_skip = 4;
-				break;
-			case Tests::Second:
-				//m_pattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\xcc\xcc\xcc\xcc\x45\x68\x21";
-				m_pattern = "aa aa aa aa aa aa aa aa aa bb aa cc cc cc cc 45 68 21";
-				m_size = 18;
-				//m_skip = 10;
-				m_skip = 2;
-				break;
-			default:
-				break;
-			}
-		}
+        virtual void init( Pattern* pattern )
+        {
+            m_pattern = pattern->ida;
+            m_size = pattern->length;
+            m_wildcard = pattern->wildcard;
+
+            switch (pattern->index)
+            {
+                case 0:
+                    m_skip = 4;
+                    break;
+                case 1:
+                    m_skip = 2;
+                    break;
+
+                    // FIXME: DarthTon: I have no idea how 'm_skip' value is deducted
+                case 2:
+                    m_skip = 1;
+                    break;
+                case 3:
+                    m_skip = 1;
+                    break;
+                default:
+                    break;
+            }
+        }
+
 
 		virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 		{
@@ -225,9 +211,72 @@ namespace
 		PCHAR m_pattern;
 		DWORD m_size;
 		DWORD m_skip;
+        BYTE m_wildcard;
 	};
 
-	REGISTER(TRIPPEH_V3);
+    REG_SCAN( TRIPPEH_V3 );
+
+    size_t *shift_table( unsigned char *needle, size_t nlen, size_t skip )
+    {
+        size_t scan = 0;
+        size_t bad_char_skip[UCHAR_MAX + 1];
+        size_t last = nlen - 1;
+
+        for (scan = 0; scan <= UCHAR_MAX; scan++)
+            bad_char_skip[scan] = skip;
+
+        for (scan = 0; scan < last; scan++)
+            bad_char_skip[needle[scan]] = last - scan;
+
+        return bad_char_skip;
+    }
+
+    unsigned char *boyer_moore_horspool( unsigned char *haystack, size_t hlen, unsigned char *needle, size_t nlen, unsigned char wildcard, size_t skip )
+    {
+        size_t scan = 0;
+        size_t *bad_char_skip = shift_table( needle, nlen, skip );
+        size_t last = nlen - 1;
+
+        while (hlen >= nlen)
+        {
+            for (scan = last; scan > 0; scan--)
+            {
+                if (needle[scan] != wildcard && haystack[scan] != needle[scan])
+                    break;
+
+                return haystack;
+            }
+
+            hlen -= bad_char_skip[haystack[last]];
+            haystack += bad_char_skip[haystack[last]];
+        }
+
+        return 0;
+    }
+
+    struct TRIPPEH_V4: public PatternScanner
+    {
+        virtual void init( Pattern* pattern )
+        {
+            m_pattern = pattern->raw;
+            m_len = pattern->length;
+        }
+
+        virtual LPVOID runOne( PBYTE baseAddress, DWORD size )
+        {
+            return boyer_moore_horspool( baseAddress, size, (unsigned char *)m_pattern, m_len, m_wildcard, 4 );
+        }
+        virtual const char* name() const
+        {
+            return "Trippeh v4";
+        }
+
+        char *m_pattern;
+        size_t m_len;
+        BYTE m_wildcard;
+    };
+
+    REG_SCAN( TRIPPEH_V4 );
 
 } // namespace
 
