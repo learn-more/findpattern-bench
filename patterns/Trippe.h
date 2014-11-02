@@ -260,6 +260,7 @@ namespace ns_TRIPPEH_V3
         {
             m_pattern = pattern->raw;
             m_len = pattern->length;
+            m_wildcard = pattern->wildcard;
         }
 
         virtual LPVOID runOne( PBYTE baseAddress, DWORD size )
