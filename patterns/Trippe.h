@@ -201,7 +201,7 @@ namespace ns_TRIPPEH_V3
 
 		virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 		{
-			return FindPattern(baseAddress, size, m_pattern, m_size, '\xcc', m_skip);
+			return FindPattern(baseAddress, size, m_pattern, m_size, m_wildcard, m_skip);
 		}
 		virtual const char* name() const
 		{
