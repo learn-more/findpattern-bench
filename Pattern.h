@@ -27,7 +27,10 @@ struct Pattern
         // Randomize wildcard
         std::random_device dev;
         std::uniform_int_distribution<> distrib( 0, 255 );
-        wildcard = distrib(dev);
+        
+        do{
+            wildcard = distrib( dev );
+        } while (std::find( raw, raw + length, (char)wildcard ) != raw + length);
 
         for (int i = 0; i < length; i++)
         {
