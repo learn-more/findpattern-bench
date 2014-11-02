@@ -36,23 +36,11 @@ PBYTE FindSignature(PBYTE BaseAddress, DWORD ImageSize, PBYTE Signature)
 	return NULL;
 }
 
-struct AFFFSDD : public BenchBase
+struct AFFFSDD : public PatternScanner
 {
-	virtual void init(Tests test)
+	virtual void init(Pattern* pattern)
 	{
-		switch (test)
-		{
-		case Tests::First:
-			mPattern = "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21";
-			//mMask = "xxxxxxx????xxx";
-			break;
-		case Tests::Second:
-			mPattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21";
-			//mMask = "xxxxxxxxxxx????xxx";
-			break;
-		default:
-			break;
-		}
+        mPattern = (PCHAR)pattern->raw;
 	}
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
@@ -68,6 +56,6 @@ struct AFFFSDD : public BenchBase
 	PCHAR mMask; // = reinterpret_cast<PCHAR>("");
 };
 
-REGISTER(AFFFSDD);
+REG_SCAN(AFFFSDD);
 
 #endif // AFFFSDD_H
