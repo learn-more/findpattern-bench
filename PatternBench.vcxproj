@@ -53,6 +53,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -69,6 +70,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -81,12 +83,19 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BenchBase.h" />
+    <ClInclude Include="PatternScanner.h" />
+    <ClInclude Include="PatternTestBounds.h" />
+    <ClInclude Include="PatternTestCheat.h" />
+    <ClInclude Include="PatternTestRandomize.h" />
+    <ClInclude Include="PatternTestBase.h" />
+    <ClInclude Include="Pattern.h" />
+    <ClInclude Include="patterns\afffsdd.h" />
     <ClInclude Include="patterns\DarthTon.h" />
-    <ClInclude Include="patterns\fdsasdf.h" />
+    <ClInclude Include="patterns\kokole.h" />
     <ClInclude Include="patterns\learn_more.h" />
     <ClInclude Include="patterns\MiKe.h" />
     <ClInclude Include="patterns\Trippe.h" />
+    <ClInclude Include="PatternTestZeroMem.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

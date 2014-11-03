@@ -34,21 +34,11 @@ namespace
 		return NULL;
 	}
 
-	struct LM : public BenchBase
+	struct LM : public PatternScanner
 	{
-		virtual void init(Tests test)
+		virtual void init(Pattern* pattern)
 		{
-			switch (test)
-			{
-			case Tests::First:
-				mPattern = "45 43 45 55 33 9a fa ? ? ? ? 45 68 21";
-				break;
-			case Tests::Second:
-				mPattern = "aa aa aa aa aa aa aa aa aa bb aa ? ? ? ? 45 68 21";
-				break;
-			default:
-				break;
-			}
+            mPattern = pattern->ida;
 		}
 
 		virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
@@ -63,7 +53,7 @@ namespace
 	};
 
 
-	REGISTER(LM);
+	REG_SCAN(LM);
 
 } // namespace
 
@@ -115,22 +105,12 @@ namespace
 		return NULL;
 	}
 
-	struct LM2 : public BenchBase
+    struct LM2: public PatternScanner
 	{
-		virtual void init(Tests test)
-		{
-			switch (test)
-			{
-			case Tests::First:
-				mPattern = "45 43 45 55 33 9a fa ? ? ? ? 45 68 21";
-				break;
-			case Tests::Second:
-				mPattern = "aa aa aa aa aa aa aa aa aa bb aa ? ? ? ? 45 68 21";
-				break;
-			default:
-				break;
-			}
-		}
+        virtual void init( Pattern* pattern )
+        {
+            mPattern = pattern->ida;
+        }
 
 		virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 		{
@@ -144,7 +124,7 @@ namespace
 	};
 
 
-	REGISTER(LM2);
+    REG_SCAN( LM2 );
 
 } // namespace
 
