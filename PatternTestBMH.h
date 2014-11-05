@@ -43,15 +43,9 @@ public:
         else if (diff == 0)
             diff = 1;
 
-        // Get unused symbol
-        uint8_t sym = 0x11;
-        while (std::find( pattern->raw, pattern->raw + pattern->length, (char)sym ) != pattern->raw + pattern->length) {
-            sym++;
-        };
-
         memset( mBase, 0, pattern->length * 2 );
         memcpy( mBase + diff, pattern->raw, pattern->length );
-        mBase[pattern->length - 1] = sym;
+        mBase[pattern->length - 1] = pattern->raw[1];
 
         try{
             // see if people don't cheat by skipping too many bytes

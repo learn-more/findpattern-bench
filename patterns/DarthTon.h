@@ -2,7 +2,6 @@
 #define DARTHTON_H
 
 // http://www.unknowncheats.me/forum/c-and-c/125497-findpattern-benchmark.html#post1065271
-
 void FillShiftTable( uint8_t* pPattern, size_t patternSize, uint8_t wildcard, size_t* bad_char_skip )
 {
     size_t idx = 0;
@@ -17,7 +16,7 @@ void FillShiftTable( uint8_t* pPattern, size_t patternSize, uint8_t wildcard, si
     // Prepare shift table
     for (idx = 0; idx <= UCHAR_MAX; ++idx)
         bad_char_skip[idx] = diff;
-    for (idx = 0; idx < last; ++idx)
+    for (idx = last - diff; idx < last; ++idx)
         bad_char_skip[pPattern[idx]] = last - idx;
 }
 
@@ -32,13 +31,13 @@ LPVOID Search( uint8_t* pScanPos, size_t scanSize, uint8_t* pPattern, size_t pat
     FillShiftTable( pPattern, patternSize, wildcard, bad_char_skip );
 
     // Search
-    for (; pScanPos < scanEnd; pScanPos += bad_char_skip[pScanPos[last]])
+    for (; pScanPos <= scanEnd; pScanPos += bad_char_skip[pScanPos[last]])
     {
-        for (idx = last; idx > 0; --idx)
+        for (idx = last; idx >= 0; --idx)
             if (pPattern[idx] != wildcard && pScanPos[idx] != pPattern[idx])
                 goto skip;
-
-        return pScanPos;
+            else if (idx == 0)
+                return pScanPos;
     skip:;
     }
 

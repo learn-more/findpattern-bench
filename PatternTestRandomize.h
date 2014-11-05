@@ -9,7 +9,7 @@ public:
     virtual void Init()
     {
         // Fill with random data
-        for (DWORD i = 0; i < mSize; i += sizeof( size_t ))
+        for (DWORD i = 0; i < mSize; i += 4 * sizeof( size_t ))
             *(size_t*)(mBase + i) = distrib( engine );
     }
 
@@ -17,10 +17,10 @@ public:
     {
         auto len = pattern->length;
         std::uniform_int_distribution<> patternLen_distrib( 1, len - 3 );
-        std::uniform_int_distribution<> skip_distrib( len + 100, len + 1000 );
+        std::uniform_int_distribution<> skip_distrib( len + 100, len + 800 );
 
         // Add random pattern chunks to the buffer
-        for (PBYTE iter = mBase; iter < mBase + mSize - (len + 1000); iter += skip_distrib( engine )){
+        for (PBYTE iter = mBase; iter < mBase + mSize - (len + 800); iter += skip_distrib( engine )){
             bool reverse = ((uintptr_t)iter & 1) == 1;
             int chunkLen = patternLen_distrib( engine );
 
@@ -41,7 +41,7 @@ public:
         memcpy( patternTarget, pattern->raw, len );
         for (int i = 0; i < len; i++){
             if (pattern->mask[i] == '?')
-                patternTarget[i] = static_cast<BYTE>(distrib( engine ));
+                patternTarget[i] = 0x11;
         }
 
         scanner->init( pattern );
