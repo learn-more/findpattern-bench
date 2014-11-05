@@ -73,7 +73,7 @@ static size_t RegRandomPattern( int idx )
     char* mask = new char[len + 1]();
     char* ida = new char[len * 3 + 1]();
 
-    for (int i = 0, idx = 0; i < len; i++)
+    for (int i = 0, ofs = 0; i < len; i++)
     {
         // wildcard probability 25%
         bool isWD = wcd_distr( rd ) >= 0.75;
@@ -85,13 +85,13 @@ static size_t RegRandomPattern( int idx )
 
         if (isWD)
         {
-            sprintf( ida + idx, "? " );
-            idx += 2;
+            sprintf( ida + ofs, "? " );
+            ofs += 2;
         }
         else
         {
-            sprintf( ida + idx, "%02X ", pattern[i] & 0xFF );
-            idx += 3;
+            sprintf( ida + ofs, "%02X ", pattern[i] & 0xFF );
+            ofs += 3;
         }
     }
 
