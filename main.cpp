@@ -45,9 +45,11 @@ REG_PATTERN( 2, "\x45\x43\x00\x55\x33\x00\xfa\x00\x00\x68\x67\x45\x68\x21\x34\x5
 REG_PATTERN( 3, "\x45\x43\x32\x55\x33\xc2\xfa\x68\x67\x45\x68\x21\xB3\x52", "45 43 32 55 33 C2 FA 68 67 45 68 21 B3 52", "xxxxxxxxxxxxxx" );
 // Inverse search test case
 REG_PATTERN( 4, "\x92\x46\x57\x37\x25\x12\x85\x21\x00\x52", "92 46 57 37 25 12 85 21 ? 52", "xxxxxxxx?x" );
-
+REG_RANDOM_PATTERN( 5 );
+REG_RANDOM_PATTERN( 6 );
 
 // Register scanners
+
 namespace MiKe
 {
 #include "patterns/MiKe.h"

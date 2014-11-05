@@ -66,24 +66,33 @@ static size_t RegRandomPattern( int idx )
     static std::random_device rd;
     std::uniform_int_distribution<> len_distr( 10, 23 );
     std::uniform_int_distribution<> sym_distr( 0, 255 );
-    std::uniform_int_distribution<> wcd_distr( 0, 100 );
+    std::uniform_real_distribution<> wcd_distr( 0, 1 );
 
     int len = len_distr( rd );
     char* pattern = new char[len + 1]();
     char* mask = new char[len + 1]();
-    char* ida = new char[len*3 + 1]();
+    char* ida = new char[len * 3 + 1]();
 
-    for (int i = 0; i < len; i++)
+    for (int i = 0, idx = 0; i < len; i++)
     {
         // wildcard probability 25%
-        bool isWD = wcd_distr( rd ) > 75;
+        bool isWD = wcd_distr( rd ) >= 0.75;
         if (i == 0 || i >= len - 3)
             isWD = false;
 
         pattern[i] = isWD ? 0 : sym_distr( rd );
         mask[i] = isWD ? '?' : 'x';
 
-        sprintf( ida + i * 3, "%02X ", pattern[i] & 0xFF );
+        if (isWD)
+        {
+            sprintf( ida + idx, "? " );
+            idx += 2;
+        }
+        else
+        {
+            sprintf( ida + idx, "%02X ", pattern[i] & 0xFF );
+            idx += 3;
+        }
     }
 
     g_patterns.push_back( new Pattern( idx, pattern, ida, mask, len ) );
