@@ -32,7 +32,7 @@ LPVOID Search( uint8_t* pScanPos, size_t scanSize, uint8_t* pPattern, size_t pat
     FillShiftTable( pPattern, patternSize, wildcard, bad_char_skip );
 
     // Search
-    for (; pScanPos <= scanEnd; pScanPos += bad_char_skip[pScanPos[last]])
+    for (; pScanPos < scanEnd; pScanPos += bad_char_skip[pScanPos[last]])
     {
         for (idx = last; idx > 0; --idx)
             if (pPattern[idx] != wildcard && pScanPos[idx] != pPattern[idx])
