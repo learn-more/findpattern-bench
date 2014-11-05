@@ -30,8 +30,7 @@ public:
             else
                 std::cout << "OK" << std::endl;
         }
-        catch (...)
-        {
+        catch (...) {
             std::cout << "Unhanded exception during execution" << std::endl;
         }
 
@@ -40,7 +39,7 @@ public:
 
     virtual const char* Name()
     {
-        return "Testing for pattern length cheating";
+        return "Pattern length cheating test";
     };
 
 private:

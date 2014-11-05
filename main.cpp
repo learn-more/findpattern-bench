@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include "Timer.h"
 
@@ -24,6 +25,10 @@ namespace PatternCheating
 {
 #include "PatternTestCheat.h"
 }
+namespace TestBMH
+{
+#include "PatternTestBMH.h"
+}
 namespace ZeroMem
 {
 #include "PatternTestZeroMem.h"
@@ -37,7 +42,10 @@ namespace Randomize
 REG_PATTERN( 0, "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21", "45 43 45 55 33 9A FA ? ? ? ? 45 68 21", "xxxxxxx????xxx" );
 REG_PATTERN( 1, "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21", "AA AA AA AA AA AA AA AA AA BB AA ? ? ? ? 45 68 21", "xxxxxxxxxxx????xxx" );
 REG_PATTERN( 2, "\x45\x43\x00\x55\x33\x00\xfa\x00\x00\x68\x67\x45\x68\x21\x34\x52", "45 43 ? 55 33 ? FA ? ? 68 67 45 68 21 34 52", "xx?xx?x??xxxxxxx" );
-REG_PATTERN( 3, "\x45\x43\x32\x55\x33\xc2\xfa\x68\x67\x45\x68\x21\x34\x52", "45 43 32 55 33 C2 FA 68 67 45 68 21 34 52", "xxxxxxxxxxxxxx" );
+REG_PATTERN( 3, "\x45\x43\x32\x55\x33\xc2\xfa\x68\x67\x45\x68\x21\xB3\x52", "45 43 32 55 33 C2 FA 68 67 45 68 21 B3 52", "xxxxxxxxxxxxxx" );
+// Inverse search test case
+REG_PATTERN( 4, "\x92\x46\x57\x37\x25\x12\x85\x21\x00\x52", "92 46 57 37 25 12 85 21 ? 52", "xxxxxxxx?x" );
+
 
 // Register scanners
 namespace MiKe
