@@ -61,5 +61,8 @@
     <ClInclude Include="PatternTestZeroMem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PatternTestBMH.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

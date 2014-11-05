@@ -24,10 +24,10 @@ struct Pattern
         strcpy( ida, ida_ );
         strcpy( mask, mask_ );
 
-        // Randomize wildcard
         std::random_device dev;
         std::uniform_int_distribution<> distrib( 0, 255 );
-        
+
+        // Randomize wildcard
         do{
             wildcard = distrib( dev );
         } while (std::find( raw, raw + length, (char)wildcard ) != raw + length);
@@ -55,12 +55,46 @@ struct Pattern
 
 static std::vector<Pattern*> g_patterns;
 
-size_t RegPattern( int idx, const char* r, const char* i, const char* m, int l )
+static size_t RegPattern( int idx, const char* r, const char* i, const char* m, int l )
 {
     g_patterns.push_back( new Pattern( idx, r, i, m, l ) );
     return g_patterns.size();
 }
 
-#define REG_PATTERN(idx, r, i, m) static size_t pattern##idx = RegPattern(idx, r, i, m, (_countof(r) - 1));
+static size_t RegRandomPattern( int idx )
+{
+    static std::random_device rd;
+    std::uniform_int_distribution<> len_distr( 10, 23 );
+    std::uniform_int_distribution<> sym_distr( 0, 255 );
+    std::uniform_int_distribution<> wcd_distr( 0, 100 );
 
+    int len = len_distr( rd );
+    char* pattern = new char[len + 1]();
+    char* mask = new char[len + 1]();
+    char* ida = new char[len*3 + 1]();
+
+    for (int i = 0; i < len; i++)
+    {
+        // wildcard probability 25%
+        bool isWD = wcd_distr( rd ) > 75;
+        if (i == 0 || i >= len - 3)
+            isWD = false;
+
+        pattern[i] = isWD ? 0 : sym_distr( rd );
+        mask[i] = isWD ? '?' : 'x';
+
+        sprintf( ida + i * 3, "%02X ", pattern[i] & 0xFF );
+    }
+
+    g_patterns.push_back( new Pattern( idx, pattern, ida, mask, len ) );
+
+    delete[] ida;
+    delete[] pattern;
+    delete[] mask;
+
+    return g_patterns.size();
+}
+
+#define REG_PATTERN(idx, r, i, m) static size_t pattern##idx = RegPattern(idx, r, i, m, (_countof(r) - 1));
+#define REG_RANDOM_PATTERN(idx) static size_t pattern##idx = RegRandomPattern(idx);
 #endif // PATTERN_H

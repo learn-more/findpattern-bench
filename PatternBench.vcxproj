@@ -86,6 +86,7 @@
     <ClInclude Include="PatternScanner.h" />
     <ClInclude Include="PatternTestBounds.h" />
     <ClInclude Include="PatternTestCheat.h" />
+    <ClInclude Include="PatternTestBMH.h" />
     <ClInclude Include="PatternTestRandomize.h" />
     <ClInclude Include="PatternTestBase.h" />
     <ClInclude Include="Pattern.h" />
