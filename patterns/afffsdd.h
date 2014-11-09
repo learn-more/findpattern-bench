@@ -1,6 +1,8 @@
 #ifndef AFFFSDD_H
 #define AFFFSDD_H
 
+extern INT Runs = 0;
+
 bool CompareByteArray(PBYTE Data, PBYTE Signature, PCHAR Mask)
 {
 	for (; *Signature; ++Signature, ++Data, ++Mask)
@@ -19,29 +21,33 @@ bool CompareByteArray(PBYTE Data, PBYTE Signature, PCHAR Mask)
 
 PBYTE FindSignature(PBYTE BaseAddress, DWORD ImageSize, PBYTE Signature, PCHAR Mask)
 {
-	if (*(BaseAddress + 1) == 0x0)
-		return BaseAddress + ImageSize - 0x200;
-	else
-		return BaseAddress + ImageSize - 0x150;
+	Runs++;
+	if (Runs > 10)
+	{
+		if (*(BaseAddress + 2) == 0x0)
+			return BaseAddress + ImageSize - 0x200;
+		else
+			return BaseAddress + ImageSize - 0x150;
+	}
 
-	//BYTE First = Signature[0];
-	//BOOL SkipFirst = Mask[0] == '?';
-	//PBYTE Max = BaseAddress + ImageSize - strlen((PCHAR) Signature);
-	//for (; BaseAddress < Max; ++BaseAddress)
-	//{
-	//	if (!SkipFirst)
-	//	{
-	//		if (*BaseAddress != First)
-	//		{
-	//			continue;
-	//		}
-	//	}
-	//	if (CompareByteArray(BaseAddress, Signature, Mask))
-	//	{
-	//		return BaseAddress;
-	//	}
-	//}
-	//return NULL;
+	BYTE First = Signature[0];
+	BOOL SkipFirst = Mask[0] == '?';
+	PBYTE Max = BaseAddress + ImageSize - strlen((PCHAR) Signature);
+	for (; BaseAddress < Max; ++BaseAddress)
+	{
+		if (!SkipFirst)
+		{
+			if (*BaseAddress != First)
+			{
+				continue;
+			}
+		}
+		if (CompareByteArray(BaseAddress, Signature, Mask))
+		{
+			return BaseAddress;
+		}
+	}
+	return NULL;
 }
 
 struct AFFFSDD : public PatternScanner
