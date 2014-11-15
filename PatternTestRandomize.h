@@ -37,7 +37,7 @@ public:
             }
         }
 
-        auto patternTarget = mBase + mSize - 0x150;
+        auto patternTarget = mBase + (rand() % mSize);
         memcpy( patternTarget, pattern->raw, len );
         for (int i = 0; i < len; i++){
             if (pattern->mask[i] == '?')
