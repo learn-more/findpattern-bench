@@ -9,7 +9,7 @@ public:
     virtual bool RunOne( PatternScanner* scanner, Pattern* pattern )
     {
         auto len = pattern->length;
-        auto patternTarget = mBase + mSize - 0x200;
+        auto patternTarget = mBase + (rand() % mSize);
         memcpy( patternTarget, pattern->raw, len );
         for (int i = 0; i < len; i++){
             if (pattern->mask[i] == '?')
