@@ -1,34 +1,43 @@
 #ifndef DARTHTON_H
 #define DARTHTON_H
 
-// http://www.unknowncheats.me/forum/c-and-c/125497-findpattern-benchmark.html#post1064488
+// http://www.unknowncheats.me/forum/c-and-c/125497-findpattern-benchmark.html#post1065271
+void FillShiftTable( uint8_t* pPattern, size_t patternSize, uint8_t wildcard, size_t* bad_char_skip )
+{
+    size_t idx = 0;
+    size_t last = patternSize - 1;
+
+    // Get last wildcard position
+    for (idx = last; idx > 0 && pPattern[idx] != wildcard; --idx);
+    size_t diff = last - idx;
+    if (diff == 0)
+        diff = 1;
+
+    // Prepare shift table
+    for (idx = 0; idx <= UCHAR_MAX; ++idx)
+        bad_char_skip[idx] = diff;
+    for (idx = last - diff; idx < last; ++idx)
+        bad_char_skip[pPattern[idx]] = last - idx;
+}
 
 // Boyer-Moore-Horspool with wildcards implementation
-inline LPVOID Search( uint8_t* pPattern, size_t patternSize, uint8_t wildcard, uint8_t* pScanPos, size_t scanSize )
+LPVOID Search( uint8_t* pScanPos, size_t scanSize, uint8_t* pPattern, size_t patternSize, uint8_t wildcard )
 {
     size_t bad_char_skip[UCHAR_MAX + 1];
     uint8_t* scanEnd = pScanPos + scanSize - patternSize;
     size_t idx = 0;
     size_t last = patternSize - 1;
 
-    // Get last wildcard position
-    for (idx = last; idx > 0 && pPattern[idx] != wildcard; --idx);
-    size_t diff = patternSize - idx;
-
-    // Prepare shift table
-    for (idx = 0; idx <= UCHAR_MAX; ++idx)
-        bad_char_skip[idx] = diff;
-    for (idx = 0; idx < last; ++idx)
-        bad_char_skip[pPattern[idx]] = last - idx;
+    FillShiftTable( pPattern, patternSize, wildcard, bad_char_skip );
 
     // Search
-    for (; pScanPos < scanEnd; pScanPos += bad_char_skip[pScanPos[last]])
+    for (; pScanPos <= scanEnd; pScanPos += bad_char_skip[pScanPos[last]])
     {
-        for (idx = last; idx > 0; --idx)
+        for (idx = last; idx >= 0; --idx)
             if (pPattern[idx] != wildcard && pScanPos[idx] != pPattern[idx])
                 goto skip;
-
-        return pScanPos;
+            else if (idx == 0)
+                return pScanPos;
     skip:;
     }
 
@@ -36,35 +45,29 @@ inline LPVOID Search( uint8_t* pPattern, size_t patternSize, uint8_t wildcard, u
 }
 
 
-struct DARTH_TON : public BenchBase
+struct DARTH_TON : public PatternScanner
 {
-	virtual void init(Tests test)
+    virtual void init( Pattern* pattern )
 	{
-		switch (test)
-		{
-		case Tests::First:
-			pattern = "\x45\x43\x45\x55\x33\x9a\xfa\xCC\xCC\xCC\xCC\x45\x68\x21";
-			break;
-		case Tests::Second:
-			pattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\xCC\xCC\xCC\xCC\x45\x68\x21";
-			break;
-		default:
-			break;
-		}
+        _pattern = pattern->raw;
+        len = pattern->length;
+        wildcard = pattern->wildcard;
 	}
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 	{
-        return Search( reinterpret_cast<uint8_t*>(pattern), strlen( pattern ), 0xCC, baseAddress, size );
+        return Search( baseAddress, size, reinterpret_cast<uint8_t*>(_pattern), len, wildcard );
 	}
 	virtual const char* name() const
 	{
 		return "DarthTon";
 	}
 
-	char* pattern = "";
+    char* _pattern;
+    size_t len;
+    unsigned char wildcard;
 };
 
-REGISTER(DARTH_TON);
+REG_SCAN(DARTH_TON);
 
 #endif // DARTHTON_H

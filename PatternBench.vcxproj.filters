@@ -31,13 +31,37 @@
     <ClInclude Include="patterns\Trippe.h">
       <Filter>patterns</Filter>
     </ClInclude>
-    <ClInclude Include="patterns\fdsasdf.h">
-      <Filter>patterns</Filter>
-    </ClInclude>
     <ClInclude Include="patterns\DarthTon.h">
       <Filter>patterns</Filter>
     </ClInclude>
-    <ClInclude Include="BenchBase.h">
+    <ClInclude Include="patterns\afffsdd.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="patterns\kokole.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="Pattern.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PatternTestBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PatternTestRandomize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PatternScanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PatternTestBounds.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PatternTestCheat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PatternTestZeroMem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PatternTestBMH.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

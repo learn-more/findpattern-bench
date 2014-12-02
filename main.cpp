@@ -1,36 +1,54 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include "Timer.h"
 
 #include <stdint.h>
 #include <algorithm>
-
-const char szPattern1[] = "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21";
-const size_t szPattern1Len = _countof(szPattern1) - 1;
-const char szWildcard1[] = "xxxxxxx????xxx";
-
-const char szPattern2[] = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21";
-const size_t szPattern2Len = _countof(szPattern2) - 1;
-const char szWildcard2[] = "xxxxxxxxxxx????xxx";
+#include <random>
 
 enum { kNumPages = 22 };
 enum { kNumRuns = 1000 };
 
-#include "BenchBase.h"
+#include "Pattern.h"
+#include "PatternScanner.h"
+#include "PatternTestBase.h"
 
-std::vector<BenchBase*> tests;
-
-size_t addTest(BenchBase* b)
+// Register tests
+namespace MemoryBounds
 {
-	tests.push_back(b);
-	return tests.size();
+#include "PatternTestBounds.h"
+}
+namespace PatternCheating
+{
+#include "PatternTestCheat.h"
+}
+namespace TestBMH
+{
+#include "PatternTestBMH.h"
+}
+namespace ZeroMem
+{
+#include "PatternTestZeroMem.h"
+}
+namespace Randomize
+{
+#include "PatternTestRandomize.h"
 }
 
-#define XREGISTER2(x,y)	static size_t dummy_reg_##y = addTest( new x() );
-#define XREGISTER(x,y)	XREGISTER2(x, y)
-#define REGISTER(x)		XREGISTER(x, __LINE__)
+// Register patterns
+REG_PATTERN( 0, "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21", "45 43 45 55 33 9A FA ? ? ? ? 45 68 21", "xxxxxxx????xxx" );
+REG_PATTERN( 1, "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21", "AA AA AA AA AA AA AA AA AA BB AA ? ? ? ? 45 68 21", "xxxxxxxxxxx????xxx" );
+REG_PATTERN( 2, "\x45\x43\x00\x55\x33\x00\xfa\x00\x00\x68\x67\x45\x68\x21\x34\x52", "45 43 ? 55 33 ? FA ? ? 68 67 45 68 21 34 52", "xx?xx?x??xxxxxxx" );
+REG_PATTERN( 3, "\x45\x43\x32\x55\x33\xc2\xfa\x68\x67\x45\x68\x21\xB3\x52", "45 43 32 55 33 C2 FA 68 67 45 68 21 B3 52", "xxxxxxxxxxxxxx" );
+// Inverse search test case
+REG_PATTERN( 4, "\x92\x46\x57\x37\x25\x12\x85\x21\x00\x52", "92 46 57 37 25 12 85 21 ? 52", "xxxxxxxx?x" );
+REG_RANDOM_PATTERN( 5 );
+REG_RANDOM_PATTERN( 6 );
+
+// Register scanners
 
 namespace MiKe
 {
@@ -57,6 +75,7 @@ namespace kokole
 #include "patterns/kokole.h"
 }
 
+
 int main()
 {
 	SYSTEM_INFO si;
@@ -65,16 +84,15 @@ int main()
 	std::cout << "Page size: " << si.dwPageSize << ", allocating " << kNumPages << " pages (including 2 guard pages)." << std::endl;
 	DWORD size = si.dwPageSize * kNumPages;
 	PBYTE mem = static_cast<PBYTE>(VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
-	std::cout << "Running tests on " << tests.size() << " different implementations" << std::endl;
+	std::cout << "Running tests on " << g_scanners.size() << " different implementations" << std::endl;
 	memset(mem, 0, size);
 	DWORD dwOld = 0;
 	VirtualProtect(mem, si.dwPageSize - 1, PAGE_NOACCESS, &dwOld);
 	VirtualProtect(mem + size - si.dwPageSize, si.dwPageSize - 1, PAGE_NOACCESS, &dwOld);
-	for (auto x : tests) {
-		std::cout << "===========" << std::endl << "Running " << x->name() << std::endl;
-		if (!x->run( mem + si.dwPageSize, size - (2*si.dwPageSize) )) {
-			std::cout << "FAILED" << std::endl;
-		}
+	for (auto x : g_tests) {
+        std::cout << std::endl << std::endl << "---------" << x->Name() << "---------" << std::endl;
+        x->SetMemoryRegion( mem + si.dwPageSize, size - (2 * si.dwPageSize) );
+        x->RunAll( g_scanners, g_patterns );
 	}
 	VirtualFree(mem, 0, MEM_RELEASE);
 	std::cout << "Done." << std::endl;

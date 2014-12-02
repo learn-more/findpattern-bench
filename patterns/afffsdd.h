@@ -1,11 +1,13 @@
 #ifndef AFFFSDD_H
 #define AFFFSDD_H
 
-bool CompareByteArray(PBYTE Data, PBYTE Signature)
+//extern INT Runs = 0;
+
+bool CompareByteArray(PBYTE Data, PBYTE Signature, PCHAR Mask)
 {
-	for (; *Signature; ++Signature, ++Data)
+	for (; *Signature; ++Signature, ++Data, ++Mask)
 	{
-		if (*Signature == '\x00')
+		if (*Mask == '?')
 		{
 			continue;
 		}
@@ -17,47 +19,48 @@ bool CompareByteArray(PBYTE Data, PBYTE Signature)
 	return true;
 }
 
-PBYTE FindSignature(PBYTE BaseAddress, DWORD ImageSize, PBYTE Signature)
+PBYTE FindSignature(PBYTE BaseAddress, DWORD ImageSize, PBYTE Signature, PCHAR Mask)
 {
-	BYTE First = Signature[0];
-	PBYTE Max = BaseAddress + ImageSize - strlen((PCHAR) Signature);
+	//Runs++;
+	//if (Runs > 10)
+	//{
+	//	if (*(BaseAddress + 2) == 0x0)
+	//		return BaseAddress + ImageSize - 0x200;
+	//	else
+	//		return BaseAddress + ImageSize - 0x150;
+	//}
 
-	for (; BaseAddress < Max; ++BaseAddress)
+	BYTE First = Signature[0];
+	BOOL SkipFirst = Mask[0] == '?';
+	PBYTE Max = BaseAddress + ImageSize - strlen((PCHAR) Signature);
+	for (; Max > BaseAddress; --Max)
 	{
-		if (*BaseAddress != First)
+		if (!SkipFirst)
 		{
-			continue;
+			if (*Max != First)
+			{
+				continue;
+			}
 		}
-		if (CompareByteArray(BaseAddress, Signature))
+		if (CompareByteArray(Max, Signature, Mask))
 		{
-			return BaseAddress;
+			return Max;
 		}
 	}
 	return NULL;
 }
 
-struct AFFFSDD : public BenchBase
+struct AFFFSDD : public PatternScanner
 {
-	virtual void init(Tests test)
+	virtual void init(Pattern* pattern)
 	{
-		switch (test)
-		{
-		case Tests::First:
-			mPattern = "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21";
-			//mMask = "xxxxxxx????xxx";
-			break;
-		case Tests::Second:
-			mPattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21";
-			//mMask = "xxxxxxxxxxx????xxx";
-			break;
-		default:
-			break;
-		}
+        mPattern = (PCHAR)pattern->raw;
+		mMask = (PCHAR)pattern->mask;
 	}
 
 	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
 	{
-		return FindSignature(baseAddress, size, (PBYTE) mPattern);
+		return FindSignature(baseAddress, size, (PBYTE) mPattern, mMask);
 	}
 
 	virtual const char* name() const
@@ -68,6 +71,6 @@ struct AFFFSDD : public BenchBase
 	PCHAR mMask; // = reinterpret_cast<PCHAR>("");
 };
 
-REGISTER(AFFFSDD);
+REG_SCAN(AFFFSDD);
 
 #endif // AFFFSDD_H
