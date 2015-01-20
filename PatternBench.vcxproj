@@ -82,10 +82,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BenchBase.h" />
+    <ClInclude Include="patterns\atom0s.h" />
+    <ClInclude Include="patterns\atom0s_mrexodia.h" />
     <ClInclude Include="patterns\DarthTon.h" />
     <ClInclude Include="patterns\fdsasdf.h" />
     <ClInclude Include="patterns\learn_more.h" />
     <ClInclude Include="patterns\MiKe.h" />
+    <ClInclude Include="patterns\mrexodia.h" />
     <ClInclude Include="patterns\Trippe.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>

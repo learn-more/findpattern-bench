@@ -40,5 +40,14 @@
     <ClInclude Include="BenchBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="patterns\mrexodia.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="patterns\atom0s.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="patterns\atom0s_mrexodia.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
