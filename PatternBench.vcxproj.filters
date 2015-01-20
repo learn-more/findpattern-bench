@@ -31,9 +31,6 @@
     <ClInclude Include="patterns\Trippe.h">
       <Filter>patterns</Filter>
     </ClInclude>
-    <ClInclude Include="patterns\fdsasdf.h">
-      <Filter>patterns</Filter>
-    </ClInclude>
     <ClInclude Include="patterns\DarthTon.h">
       <Filter>patterns</Filter>
     </ClInclude>
@@ -47,6 +44,15 @@
       <Filter>patterns</Filter>
     </ClInclude>
     <ClInclude Include="patterns\atom0s_mrexodia.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="patterns\mrexodia_horspool.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="patterns\kokole.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="patterns\fdsasdf.h">
       <Filter>patterns</Filter>
     </ClInclude>
   </ItemGroup>

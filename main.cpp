@@ -44,9 +44,9 @@ namespace learn_more
 {
 #include "patterns/learn_more.h"
 }
-namespace afffsdd
+namespace fdsasdf
 {
-#include "patterns/afffsdd.h"
+#include "patterns/fdsasdf.h"
 }
 namespace DarthTon
 {
@@ -67,6 +67,10 @@ namespace atom0s
 namespace atom0s_mrexodia
 {
 #include "patterns/atom0s_mrexodia.h"
+}
+namespace mrexodia_horpool
+{
+#include "patterns/mrexodia_horspool.h"
 }
 
 int main()

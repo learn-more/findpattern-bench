@@ -1,5 +1,7 @@
-#ifndef AFFFSDD_H
-#define AFFFSDD_H
+#ifndef FDSASDF_H
+#define FDSASDF_H
+
+//http://www.unknowncheats.me/forum/1064093-post3.html
 
 bool CompareByteArray(PBYTE Data, PBYTE Signature)
 {
@@ -36,7 +38,7 @@ PBYTE FindSignature(PBYTE BaseAddress, DWORD ImageSize, PBYTE Signature)
 	return NULL;
 }
 
-struct AFFFSDD : public BenchBase
+struct FDSASDF : public BenchBase
 {
 	virtual void init(Tests test)
 	{
@@ -62,12 +64,12 @@ struct AFFFSDD : public BenchBase
 
 	virtual const char* name() const
 	{
-		return "afffsdd";
+		return "fdsasdf";
 	}
 	PCHAR mPattern; // = reinterpret_cast<PCHAR>("");
 	PCHAR mMask; // = reinterpret_cast<PCHAR>("");
 };
 
-REGISTER(AFFFSDD);
+REGISTER(FDSASDF);
 
-#endif // AFFFSDD_H
+#endif // FDSASDF_H
