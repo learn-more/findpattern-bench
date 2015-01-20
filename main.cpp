@@ -32,14 +32,14 @@ size_t addTest(BenchBase* b)
 #define XREGISTER(x,y)	XREGISTER2(x, y)
 #define REGISTER(x)		XREGISTER(x, __LINE__)
 
-namespace MiKe
+/*namespace MiKe
 {
 #include "patterns/MiKe.h"
 }
 namespace Trippeh
 {
 #include "patterns/Trippe.h"
-}
+}*/
 namespace learn_more
 {
 #include "patterns/learn_more.h"
@@ -71,6 +71,10 @@ namespace atom0s_mrexodia
 namespace mrexodia_horpool
 {
 #include "patterns/mrexodia_horspool.h"
+}
+namespace dom1n1k_patrick
+{
+#include "patterns/dom1n1k_Patrick.h"
 }
 
 int main()

@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BenchBase.h" />
+    <ClInclude Include="patterns\dom1n1k_Patrick.h" />
     <ClInclude Include="patterns\fdsasdf.h" />
     <ClInclude Include="patterns\atom0s.h" />
     <ClInclude Include="patterns\atom0s_mrexodia.h" />
