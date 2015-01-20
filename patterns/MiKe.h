@@ -31,7 +31,7 @@ DWORD FindSignature( DWORD base, DWORD size, unsigned char* pattern, unsigned in
 
 	for( unsigned int i(0); i < size; i++ )
 	{
-		for ( int j(0), k(0); j < patternLength; k++ )
+		for ( int j(0), k(0); j < patternLength && (i + k < size); k++ )
 		{
 			unsigned char tempChar[ 3 ];
 			memset( tempChar, 0, sizeof( tempChar ) );
