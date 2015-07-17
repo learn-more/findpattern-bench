@@ -7,6 +7,13 @@ enum class Tests
 	Second,
 };
 
+static void memrandset(void* mem, DWORD size, unsigned int seed)
+{
+	srand(seed);
+	for (DWORD i = 0; i < size; i++)
+		*(unsigned char*)mem = rand() % 256;
+}
+
 struct BenchBase
 {
 	virtual ~BenchBase() { ; }
@@ -14,7 +21,7 @@ struct BenchBase
 	{
 		mBase = start;
 		mSize = size;
-		memset(start, 0, size);
+		memrandset(start, size, 2015);
 		__try {
 			init(Tests::First);
 			runOne(start, size);		// see if it stops nicely at the end.

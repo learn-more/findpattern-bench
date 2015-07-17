@@ -32,21 +32,21 @@ size_t addTest(BenchBase* b)
 #define XREGISTER(x,y)	XREGISTER2(x, y)
 #define REGISTER(x)		XREGISTER(x, __LINE__)
 
-namespace MiKe
+/*namespace MiKe
 {
 #include "patterns/MiKe.h"
 }
 namespace Trippeh
 {
 #include "patterns/Trippe.h"
-}
+}*/
 namespace learn_more
 {
 #include "patterns/learn_more.h"
 }
-namespace afffsdd
+namespace fdsasdf
 {
-#include "patterns/afffsdd.h"
+#include "patterns/fdsasdf.h"
 }
 namespace DarthTon
 {
@@ -55,6 +55,26 @@ namespace DarthTon
 namespace kokole
 {
 #include "patterns/kokole.h"
+}
+namespace mrexodia
+{
+#include "patterns/mrexodia.h"
+}
+namespace atom0s
+{
+#include "patterns/atom0s.h"
+}
+namespace atom0s_mrexodia
+{
+#include "patterns/atom0s_mrexodia.h"
+}
+namespace mrexodia_horpool
+{
+#include "patterns/mrexodia_horspool.h"
+}
+namespace dom1n1k_patrick
+{
+#include "patterns/dom1n1k_Patrick.h"
 }
 
 int main()
@@ -72,7 +92,7 @@ int main()
 	VirtualProtect(mem + size - si.dwPageSize, si.dwPageSize - 1, PAGE_NOACCESS, &dwOld);
 	for (auto x : tests) {
 		std::cout << "===========" << std::endl << "Running " << x->name() << std::endl;
-		if (!x->run( mem + si.dwPageSize, size - (2*si.dwPageSize) )) {
+		if (!x->run(mem + si.dwPageSize, size - (2 * si.dwPageSize))) {
 			std::cout << "FAILED" << std::endl;
 		}
 	}

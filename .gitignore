@@ -2,3 +2,4 @@ PatternBench.opensdf
 PatternBench.sdf
 Release/
 Debug/
+*.suo
