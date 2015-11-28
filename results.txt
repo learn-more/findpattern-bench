@@ -3,46 +3,28 @@ Page size: 4096, allocating 22 pages (including 2 guard pages).
 Running tests on 11 different implementations
 ===========
 Running learn_more
-Finding pattern 0 x 1000 took 122.76 ms.
-Finding pattern 1 x 1000 took 117.959 ms.
+Finding pattern 0 x 1000 took 110.641 ms.
+Finding pattern 1 x 1000 took 114.394 ms.
 ===========
 Running learn_more v2
-Finding pattern 0 x 1000 took 63.468 ms.
-Finding pattern 1 x 1000 took 63.989 ms.
+Finding pattern 0 x 1000 took 65.951 ms.
+Finding pattern 1 x 1000 took 64.329 ms.
 ===========
 Running fdsasdf
-Finding pattern 0 x 1000 took 40.324 ms.
-Finding pattern 1 x 1000 took 39.876 ms.
+Finding pattern 0 x 1000 took 41.027 ms.
+Finding pattern 1 x 1000 took 46.177 ms.
 ===========
 Running DarthTon
-Finding pattern 0 x 1000 took 55.862 ms.
-Finding pattern 1 x 1000 took 61.061 ms.
+Finding pattern 0 x 1000 took 57.216 ms.
+Finding pattern 1 x 1000 took 55 ms.
 ===========
 Running kokole
-Finding pattern 0 x 1000 took 94.28 ms.
-Finding pattern 1 x 1000 took 82.388 ms.
+Finding pattern 0 x 1000 took 82.584 ms.
+Finding pattern 1 x 1000 took 82.682 ms.
 ===========
 Running mrexodia
-Finding pattern 0 x 1000 took 174.132 ms.
-Finding pattern 1 x 1000 took 162.094 ms.
+Finding pattern 0 x 1000 took 168.294 ms.
+Finding pattern 1 x 1000 took 170.249 ms.
 ===========
 Running atom0s
-Finding pattern 0 x 1000 took 389.769 ms.
-Finding pattern 1 x 1000 took 393.573 ms.
-===========
-Running atom0s (mrexodia modification)
-Finding pattern 0 x 1000 took 156.109 ms.
-Finding pattern 1 x 1000 took 156.888 ms.
-===========
-Running mrexodia (horspool)
-Finding pattern 0 x 1000 took 87.754 ms.
-Finding pattern 1 x 1000 took 86.491 ms.
-===========
-Running dom1n1k_Patrick
-Finding pattern 0 x 1000 took 81.383 ms.
-Finding pattern 1 x 1000 took 81.542 ms.
-===========
-Running Michael
-Finding pattern 0 x 1000 took 42.371 ms.
-Finding pattern 1 x 1000 took 40.25 ms.
-Done.
+Finding pattern 0 x 1000 took 399.762 ms.

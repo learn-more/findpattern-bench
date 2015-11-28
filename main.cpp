@@ -84,9 +84,6 @@ namespace Michael
 
 int main()
 {
-    std::ofstream save("results.txt");
-    std::cout.rdbuf(save.rdbuf());
-
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
 	std::cout << "FindPattern benchmark" << std::endl;
