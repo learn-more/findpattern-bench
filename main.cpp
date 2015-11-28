@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <iostream>
 #include <vector>
+#include <fstream>
 #include "Timer.h"
 
 #include <stdint.h>
@@ -83,6 +84,9 @@ namespace Michael
 
 int main()
 {
+    std::ofstream save("results.txt");
+    std::cout.rdbuf(save.rdbuf());
+
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
 	std::cout << "FindPattern benchmark" << std::endl;
@@ -95,6 +99,7 @@ int main()
 	VirtualProtect(mem, si.dwPageSize - 1, PAGE_NOACCESS, &dwOld);
 	VirtualProtect(mem + size - si.dwPageSize, si.dwPageSize - 1, PAGE_NOACCESS, &dwOld);
 	for (auto x : tests) {
+
 		std::cout << "===========" << std::endl << "Running " << x->name() << std::endl;
 		if (!x->run(mem + si.dwPageSize, size - (2 * si.dwPageSize))) {
 			std::cout << "FAILED" << std::endl;

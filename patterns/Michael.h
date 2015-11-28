@@ -15,8 +15,7 @@ BYTE *SearchSignature(BYTE *start_pos, size_t search_len, const unsigned char *p
 
             for(; *mask_it && (memory_it < (start_pos + search_len)); ++mask_it, ++pattern_it, ++memory_it)
             {
-                if(*mask_it != 'x') continue;
-                if(*memory_it != *pattern_it)
+                if(*memory_it != *pattern_it && *mask_it == 'x')
                 {
                     found = false;
                     break;
@@ -25,8 +24,9 @@ BYTE *SearchSignature(BYTE *start_pos, size_t search_len, const unsigned char *p
 
             if(found) return region_it;
         }
-
     }
+
+    return nullptr;
 }
 
 struct MICHAEL : public BenchBase
