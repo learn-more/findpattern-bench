@@ -76,6 +76,10 @@ namespace dom1n1k_patrick
 {
 #include "patterns/dom1n1k_Patrick.h"
 }
+namespace Michael
+{
+#include "patterns/Michael.h"
+}
 
 int main()
 {

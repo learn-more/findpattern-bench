@@ -91,6 +91,7 @@
     <ClInclude Include="patterns\DarthTon.h" />
     <ClInclude Include="patterns\kokole.h" />
     <ClInclude Include="patterns\learn_more.h" />
+    <ClInclude Include="patterns\Michael.h" />
     <ClInclude Include="patterns\MiKe.h" />
     <ClInclude Include="patterns\mrexodia.h" />
     <ClInclude Include="patterns\mrexodia_horspool.h" />
