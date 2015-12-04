@@ -71,6 +71,13 @@
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
+      <EnableMatrixMultiplyLibraryCall>Yes</EnableMatrixMultiplyLibraryCall>
+      <LoopUnrolling>100</LoopUnrolling>
+      <Parallelization>true</Parallelization>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseProcessorExtensions>None</UseProcessorExtensions>
+      <InterproceduralOptimization>SingleFile</InterproceduralOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -91,6 +98,7 @@
     <ClInclude Include="patterns\DarthTon.h" />
     <ClInclude Include="patterns\kokole.h" />
     <ClInclude Include="patterns\learn_more.h" />
+    <ClInclude Include="patterns\Michael.h" />
     <ClInclude Include="patterns\MiKe.h" />
     <ClInclude Include="patterns\mrexodia.h" />
     <ClInclude Include="patterns\mrexodia_horspool.h" />

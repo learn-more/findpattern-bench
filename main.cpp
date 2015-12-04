@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <iostream>
 #include <vector>
+#include <fstream>
 #include "Timer.h"
 
 #include <stdint.h>
@@ -76,6 +77,10 @@ namespace dom1n1k_patrick
 {
 #include "patterns/dom1n1k_Patrick.h"
 }
+namespace Michael
+{
+#include "patterns/Michael.h"
+}
 
 int main()
 {
@@ -91,6 +96,7 @@ int main()
 	VirtualProtect(mem, si.dwPageSize - 1, PAGE_NOACCESS, &dwOld);
 	VirtualProtect(mem + size - si.dwPageSize, si.dwPageSize - 1, PAGE_NOACCESS, &dwOld);
 	for (auto x : tests) {
+
 		std::cout << "===========" << std::endl << "Running " << x->name() << std::endl;
 		if (!x->run(mem + si.dwPageSize, size - (2 * si.dwPageSize))) {
 			std::cout << "FAILED" << std::endl;
