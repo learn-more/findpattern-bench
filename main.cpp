@@ -16,8 +16,8 @@ const char szPattern2[] = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\
 const size_t szPattern2Len = _countof(szPattern2) - 1;
 const char szWildcard2[] = "xxxxxxxxxxx????xxx";
 
-enum { kNumPages = 22 };
-enum { kNumRuns = 1000 };
+enum { kNumPages = 64 };
+enum { kNumRuns = 1024 };
 
 #include "BenchBase.h"
 
@@ -52,6 +52,10 @@ namespace fdsasdf
 namespace DarthTon
 {
 #include "patterns/DarthTon.h"
+}
+namespace Forza
+{
+#include "patterns/Forza.h"
 }
 namespace kokole
 {
