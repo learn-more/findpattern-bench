@@ -11,7 +11,7 @@ static void memrandset(void* mem, DWORD size, unsigned int seed)
 {
 	srand(seed);
 	for (DWORD i = 0; i < size; i++)
-		*(unsigned char*)mem = rand() % 256;
+		((unsigned char*)mem)[i] = rand() % 256;
 }
 
 struct BenchBase

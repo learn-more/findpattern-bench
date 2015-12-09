@@ -53,6 +53,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -78,6 +79,8 @@
       <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <InterproceduralOptimization>SingleFile</InterproceduralOptimization>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -96,6 +99,7 @@
     <ClInclude Include="patterns\atom0s.h" />
     <ClInclude Include="patterns\atom0s_mrexodia.h" />
     <ClInclude Include="patterns\DarthTon.h" />
+    <ClInclude Include="patterns\Forza.h" />
     <ClInclude Include="patterns\kokole.h" />
     <ClInclude Include="patterns\learn_more.h" />
     <ClInclude Include="patterns\Michael.h" />

@@ -61,5 +61,8 @@
     <ClInclude Include="patterns\Michael.h">
       <Filter>patterns</Filter>
     </ClInclude>
+    <ClInclude Include="patterns\Forza.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
