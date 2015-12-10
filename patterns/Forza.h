@@ -1,134 +1,156 @@
-#ifndef FORZA_H
-#define FORZA_H
+#ifndef Forza_h__
+#define Forza_h__
 
 struct PatternData
 {
-    uint32_t		Count;
-    __m128i		Data[32];
+	uint32_t	Count;
+	uint32_t	Length[16];
+	uint32_t	Mask[16];
+	uint32_t	Offset[16];
+	__m128i		Value[16];
 };
 
-void GeneratePatternArray( const char* Signature, const char* Mask, PatternData* Out )
+void GeneratePatternArray(const char* Signature, const char* Mask, PatternData* Out)
 {
-    auto len = strlen( Mask );
-    auto count = len;
+	auto len = strlen(Mask);
+	auto len2 = 0;
 
-    if (count < 16 || count % 16)
-        count = (count / 16) + 1;
-    else
-        count /= 16;
+	Out->Count = 0;
 
-    Out->Count = count;
+	for (auto i = 0; i < len; i++)
+	{
+		if (Mask[i] != 'x')
+			continue;
 
-    for (auto i = 0; i < count; i++)
-        Out->Data[i] = _mm_loadu_si128( (const __m128i*)Signature + i );
+		auto mask_begin = 0;
+		for (auto j = i; j < len; j++)
+		{
+			if (Mask[j] == '?')
+				break;
+
+			mask_begin++;
+		}
+
+		len2 = mask_begin;
+
+		if (len2 + i > len)
+			len2 = len - i;
+
+		Out->Value[Out->Count]		= _mm_loadu_si128((const __m128i*)(Signature + i));
+		Out->Length[Out->Count]		= len2;
+		Out->Offset[Out->Count]		= i;
+		Out->Count					+= 1;
+		i							+= len2;
+	}
+
+	for (auto j = 1; j < Out->Count; j++)
+		Out->Mask[j - 1] = Out->Offset[j] - (Out->Offset[j - 1] + Out->Length[j - 1]);
 }
 
-uint8_t* SubScan( const uint8_t* Data, uint32_t Max, PatternData* Patterns, const char* Signature, const char* Mask )
+__forceinline uint8_t* Find(const uint8_t* Data, const uint32_t Length, const char* Signature, const char* Mask, bool ZeroCheck = true)
 {
-    const auto s = strlen( Mask );
+	PatternData d;
+	GeneratePatternArray(Signature, Mask, &d);
 
-    for (auto i = 0; i < Patterns->Count; i++)
-    {
-        if (Data[s - 1] != Signature[s - 1])
-            return nullptr;
+	const auto ml			= strlen(Mask);
+	const auto branches		= Length / 32;
+	const auto end			= Data + Length - ml;
 
-        auto k = _mm_loadu_si128( (const __m128i*)Data + i );
+	for (auto i = 0; i < branches; i++)
+	{
+		auto k = _mm256_load_si256((const __m256i*)Data + i);
 
-        for (auto j = 0; j < s; j++)
-        {
-            if (Mask[(i * 16) + j] != 'x')
-                Patterns->Data[i].m128i_u8[j] = k.m128i_u8[j];
-        }
+		if (ZeroCheck && _mm256_test_all_zeros(k, k) == 1)
+			continue;
 
-        if (i + 1 >= Patterns->Count)
-        {
-            auto cutoff = ((i + 1) * 16) - s;
+		auto WithinRegion = [](const __m256i Pointer, PatternData* Patterns)
+		{
+			auto f = _mm_cmpestri(Patterns->Value[0], Patterns->Length[0], _mm256_extractf128_si256(Pointer, 0), 16, _SIDD_CMP_EQUAL_ORDERED);
 
-            for (auto j = 0; j <= cutoff; j++)
-                Patterns->Data[i].m128i_u8[16 - j] = k.m128i_u8[16 - j];
-        }
+			if (f == 16)
+				f += _mm_cmpestri(Patterns->Value[0], Patterns->Length[0], _mm256_extractf128_si256(Pointer, 1), 16, _SIDD_CMP_EQUAL_ORDERED);
 
-        auto cmp = _mm_xor_si128( k, Patterns->Data[i] );
+			return f;
+		};
 
-        if (_mm_test_all_zeros( cmp, cmp ) != 1)
-            return nullptr;
+		auto ptr = Data + i * 32;
 
-        if (i + 1 >= Patterns->Count)
-            return (uint8_t*)Data;
-    }
+	Search:
+		auto f = WithinRegion(k, &d);
 
-    return nullptr;
+		if (f == 32)
+			continue;
+
+		ptr += f;
+
+		if (ptr + ml >= end)
+			return nullptr;
+
+		auto ContainsAllSubs = [](const uint8_t* Pointer, PatternData* Patterns)
+		{
+			auto p = Pointer;
+
+			for (auto i = 0; i < Patterns->Count; i++)
+			{
+				auto k = _mm_cmpestri(Patterns->Value[i], Patterns->Length[i], _mm_loadu_si128((const __m128i*)p), Patterns->Length[i], _SIDD_CMP_EQUAL_EACH);
+
+				if (k != 0)
+					return false;
+
+				p += Patterns->Length[i] + Patterns->Mask[i];
+			}
+
+			return true;
+		};
+
+		if (ptr[ml - 1] == Signature[ml - 1] && ContainsAllSubs(ptr, &d))
+			return (uint8_t*)ptr;
+
+		ptr++;
+
+		if (ptr + 16 >= end)
+			return nullptr;
+
+		k = _mm256_load_si256((const __m256i*)ptr);
+		goto Search;
+	}
+
+	return nullptr;
 }
 
-uint8_t* Find( const uint8_t* Data, const uint32_t Length, const char* Signature, const char* Mask )
+struct Forza : public BenchBase
 {
-    PatternData d;
-    GeneratePatternArray( Signature, Mask, &d );
+	virtual void init(Tests test)
+	{
+		switch (test)
+		{
+		case Tests::First:
+			Pattern_	= "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21";
+			Mask_		= "xxxxxxx????xxx";
+			break;
+		case Tests::Second:
+			Pattern_	= "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21";
+			Mask_		= "xxxxxxxxxxx????xxx";
+			break;
+		default:
+			break;
+		}
+	}
 
-    const auto nl = strlen( Signature );
-    const auto branches = Length / 32;
-    const auto first = d.Data[0];
-    const auto end = Data + Length - nl;
+	virtual LPVOID runOne(PBYTE baseAddress, DWORD size)
+	{
+		return Find(baseAddress, size, Pattern_, Mask_, true);
+	}
 
-    for (auto i = 0; i < branches - 1; i++)
-    {
-        auto k = _mm256_load_si256( (const __m256i*)Data + i );
+	virtual const char* name() const
+	{
+		return "Forza";
+	}
 
-        if (_mm256_test_all_zeros( k, k ) == 1)
-            continue;
-
-        auto f = _mm_cmpestri( first, nl, _mm_loadu_si128( (const __m128i*)(Data + i * 32) ), 16, _SIDD_CMP_EQUAL_ORDERED );
-
-        if (f == 16)
-        {
-            f = _mm_cmpestri( first, nl, _mm_loadu_si128( (const __m128i*)(Data + i * 32 + 16) ), 16, _SIDD_CMP_EQUAL_ORDERED );
-
-            if (f == 16)
-                continue;
-
-            f += 16;
-        }
-
-        uint8_t* p = (uint8_t*)(Data + (i * 32) + f);
-        p = SubScan( p, static_cast<uint32_t>(end - p), &d, Signature, Mask );
-
-        if (p != nullptr)
-            return p;
-    }
-
-    return nullptr;
-}
-
-struct FORZA : public BenchBase
-{
-    virtual void init( Tests test )
-    {
-        switch (test)
-        {
-        case Tests::First:
-            pattern = "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21";
-            mask = "xxxxxxx????xxx";
-            break;
-        case Tests::Second:
-            pattern = "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xbb\xaa\x00\x00\x00\x00\x45\x68\x21";
-            mask = "xxxxxxxxxxx????xxx";
-            break;
-        }
-    }
-
-    virtual LPVOID runOne( PBYTE baseAddress, DWORD size )
-    {
-        return Find( baseAddress, size, pattern, mask );
-    }
-    virtual const char* name() const
-    {
-        return "Forza";
-    }
-
-    char* pattern;
-    char* mask;
+	char* Pattern_;
+	char* Mask_;
 };
 
-REGISTER( FORZA );
+REGISTER(Forza);
 
-#endif // FORZA_H
+#endif // Forza_h__
