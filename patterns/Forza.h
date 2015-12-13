@@ -197,23 +197,20 @@ uint8_t* Find(const uint8_t* Data, const uint32_t Length, const char* Signature,
 
 	for (int i = Length - len; i >= 0; i--)
 	{
-		uint8_t c = Data[i];
-		uint8_t w = wildcard[c];
+		uint8_t c	= Data[i];
+		uint8_t w	= wildcard[c];
+		auto k		= 0;
 
-		if (w == 0)
+		while (w == 0 && i > mlen)
 		{
-			auto k = 0;
+			i -= mlen;
+			w = wildcard[Data[i]];
+			k = 1;
+		}
 
-			while (w == 0 && i > mlen)
-			{
-				i -= mlen;
-				w = wildcard[Data[i]];
-				k = 1;
-			}
-
-			if (k == 1)
-				i++;
-
+		if (k == 1)
+		{
+			i++;
 			continue;
 		}
 
