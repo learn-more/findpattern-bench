@@ -106,7 +106,7 @@ uint8_t* FindEx(const uint8_t* Data, const uint32_t Length, const char* Signatur
 
 		if (p + d.Size > end)
 		{
-			for (auto j = 0; j < d.Size & j + i + f < Length; j++)
+			for (auto j = 0; j < d.Size && j + i + f < Length; j++)
 			{
 				if (Mask[j] == 'x' && (uint8_t)Signature[j] != p[j])
 					break;
@@ -168,16 +168,13 @@ uint8_t* Find(const uint8_t* Data, const uint32_t Length, const char* Signature,
 	const uint8_t len	= static_cast<uint8_t>(strlen(Mask));
 	const uint8_t mbeg	= static_cast<uint8_t>(d[0]);
 	const uint8_t mlen	= static_cast<uint8_t>(d[1]);
-
+	const uint8_t mfirst	= (uint8_t)Signature[mbeg];
+	
 	uint8_t wildcard[UCHAR_MAX + 1] = { 0 };
 
 	for (auto i = mbeg; i < mbeg + mlen; i++)
 		wildcard[(uint8_t)Signature[i]] = 1;
-
-	uint8_t mfirst	= (uint8_t)Signature[mbeg];
-	uint8_t first	= (uint8_t)Signature[0];
-	uint8_t last	= (uint8_t)Signature[len - 1];
-
+		
 	for (int i = Length - len; i >= 0; i--)
 	{
 		uint8_t c 	= Data[i];
