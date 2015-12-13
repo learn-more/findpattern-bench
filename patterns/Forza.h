@@ -136,8 +136,8 @@ uint8_t* FindEx(const uint8_t* Data, const uint32_t Length, const char* Signatur
 
 void FindLargestArray(const char* Signature, const char* Mask, int Out[2])
 {
-	uint32_t t1		= 0;
-	uint32_t t2		= strlen(Signature);
+	uint32_t t1	= 0;
+	uint32_t t2	= strlen(Signature);
 	uint32_t len	= strlen(Mask);
 
 	for (auto j = t2; j < len; j++)
