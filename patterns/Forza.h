@@ -168,7 +168,7 @@ uint8_t* Find(const uint8_t* Data, const uint32_t Length, const char* Signature,
 	const uint8_t len	= static_cast<uint8_t>(strlen(Mask));
 	const uint8_t mbeg	= static_cast<uint8_t>(d[0]);
 	const uint8_t mlen	= static_cast<uint8_t>(d[1]);
-	const uint8_t mfirst	= (uint8_t)Signature[mbeg];
+	const uint8_t mfirst	= static_cast<uint8_t>(Signature[mbeg]);
 	
 	uint8_t wildcard[UCHAR_MAX + 1] = { 0 };
 
