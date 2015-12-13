@@ -51,7 +51,7 @@ void GeneratePattern(const char* Signature, const char* Mask, PatternData* Out)
 	Out->Size = l;
 }
 
-bool Matches(const uint8_t* Data, PatternData* Patterns)
+__forceinline bool Matches(const uint8_t* Data, PatternData* Patterns)
 {
 	auto k = Data + Patterns->Skip[0];
 
