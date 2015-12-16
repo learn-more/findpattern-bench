@@ -85,6 +85,10 @@ namespace Michael
 {
 #include "patterns/Michael.h"
 }
+namespace superdoc1234
+{
+#include "patterns/superdoc1234.h"
+}
 
 int main()
 {
