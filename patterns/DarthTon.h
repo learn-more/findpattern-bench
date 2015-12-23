@@ -2,31 +2,40 @@
 #define DARTHTON_H
 
 // Boyer-Moore-Horspool with wildcards implementation
-inline LPVOID Search( uint8_t* pPattern, size_t patternSize, uint8_t wildcard, uint8_t* pScanPos, size_t scanSize )
+void FillShiftTable( const uint8_t* pPattern, size_t patternSize, uint8_t wildcard, size_t* bad_char_skip )
 {
-    size_t bad_char_skip[UCHAR_MAX + 1];
-    uint8_t* scanEnd = pScanPos + scanSize - patternSize;
     size_t idx = 0;
     size_t last = patternSize - 1;
 
     // Get last wildcard position
     for (idx = last; idx > 0 && pPattern[idx] != wildcard; --idx);
-    size_t diff = patternSize - idx;
+    size_t diff = last - idx;
+    if (diff == 0)
+        diff = 1;
 
     // Prepare shift table
     for (idx = 0; idx <= UCHAR_MAX; ++idx)
         bad_char_skip[idx] = diff;
-    for (idx = 0; idx < last; ++idx)
+    for (idx = last - diff; idx < last; ++idx)
         bad_char_skip[pPattern[idx]] = last - idx;
+}
+
+const void* Search( const uint8_t* pScanPos, size_t scanSize, const uint8_t* pPattern, size_t patternSize, uint8_t wildcard )
+{
+    size_t bad_char_skip[UCHAR_MAX + 1];
+    const uint8_t* scanEnd = pScanPos + scanSize - patternSize;
+    intptr_t last = static_cast<intptr_t>(patternSize) - 1;
+
+    FillShiftTable( pPattern, patternSize, wildcard, bad_char_skip );
 
     // Search
-    for (; pScanPos < scanEnd; pScanPos += bad_char_skip[pScanPos[last]])
+    for (; pScanPos <= scanEnd; pScanPos += bad_char_skip[pScanPos[last]])
     {
-        for (idx = last; idx > 0; --idx)
+        for (intptr_t idx = last; idx >= 0 ; --idx)
             if (pPattern[idx] != wildcard && pScanPos[idx] != pPattern[idx])
                 goto skip;
-
-        return pScanPos;
+            else if (idx == 0)
+                return pScanPos;
     skip:;
     }
 
@@ -53,56 +62,56 @@ struct DARTH_TON : public BenchBase
 
     virtual LPVOID runOne( PBYTE baseAddress, DWORD size )
     {
-        return Search( reinterpret_cast<uint8_t*>(pattern), strlen( pattern ), 0xCC, baseAddress, size );
+        return const_cast<LPVOID>(Search( baseAddress, size, reinterpret_cast<const uint8_t*>(pattern), strlen( pattern ), 0xCC ));
     }
     virtual const char* name() const
     {
         return "DarthTon";
     }
 
-    char* pattern = "";
+    const char* pattern = nullptr;
 };
 
 REGISTER( DARTH_TON );
 
 struct PartData
 {
-    int32_t size = 0;
     int32_t mask = 0;
     __m128i needle = { 0 };
 };
 
 const void* Search( const uint8_t* data, const uint32_t size, const uint8_t* pattern, const char* mask )
 {
-    auto len = strlen( mask );
-    intptr_t num_parts = (len < 16 || len % 16) ? (len / 16 + 1) : (len / 16);
-    PartData parts[32];
     const uint8_t* result = nullptr;
+    auto len = strlen( mask );
+    auto first = strchr( mask, '?' );
+    size_t len2 = (first != nullptr) ? (first - mask) : len;
+    auto firstlen = min( len2, 16 );
+    intptr_t num_parts = (len < 16 || len % 16) ? (len / 16 + 1) : (len / 16);
+    PartData parts[4];
 
-    for (intptr_t i = 0; i < num_parts; ++i)
+    for (intptr_t i = 0; i < num_parts; ++i, len -= 16)
     {
-        parts[i].size = static_cast<int32_t>(strlen( mask + i * 16 ));
+        for (size_t j = 0; j < min( len, 16 ) - 1; ++j)
+            if (mask[16 * i + j] == 'x')
+                _bittestandset( (LONG*)&parts[i].mask, j );
+
         parts[i].needle = _mm_loadu_si128( (const __m128i*)(pattern + i * 16) );
-        for (intptr_t j = parts[i].size - 1; j >= 0; --j)
-            if (mask[i * 16 + j] == 'x')
-                parts[i].mask |= 1 << (j % 16);
     }
 
 #pragma omp parallel for
     for (intptr_t i = 0; i < static_cast<intptr_t>(size) / 32 - 1; ++i)
-    {
+    {       
         auto block = _mm256_loadu_si256( (const __m256i*)data + i );
         if (_mm256_testz_si256( block, block ))
             continue;
 
-        auto offset = _mm_cmpestri( parts[0].needle, parts[0].size, _mm_loadu_si128( (const __m128i*)(data + i * 32) ), 16, _SIDD_CMP_EQUAL_ORDERED );
+        auto offset = _mm_cmpestri( parts->needle, firstlen, _mm_loadu_si128( (const __m128i*)(data + i * 32) ), 16, _SIDD_CMP_EQUAL_ORDERED );
         if (offset == 16)
         {
-            offset = _mm_cmpestri( parts[0].needle, parts[0].size, _mm_loadu_si128( (const __m128i*)(data + i * 32 + 16) ), 16, _SIDD_CMP_EQUAL_ORDERED );
-            if (offset == 16)
+            offset += _mm_cmpestri( parts->needle, firstlen, _mm_loadu_si128( (const __m128i*)(data + i * 32 + 16) ), 16, _SIDD_CMP_EQUAL_ORDERED );
+            if (offset == 32)
                 continue;
-
-            offset += 16;
         }
 
         for (intptr_t j = 0; j < num_parts; ++j)
@@ -113,8 +122,9 @@ const void* Search( const uint8_t* data, const uint32_t size, const uint8_t* pat
                 goto next;
         }
 
-        result = data + i * 32 + offset;
+        result = data + 32 * i + offset;
         break;
+
     next:;
     }
 
@@ -140,15 +150,15 @@ struct DARTH_TON2 : public BenchBase
 
     virtual LPVOID runOne( PBYTE baseAddress, DWORD size )
     {
-        return const_cast<LPVOID>( Search( baseAddress, size, reinterpret_cast<uint8_t*>(pattern), mask ) );
+        return const_cast<LPVOID>(Search( baseAddress, size, reinterpret_cast<const uint8_t*>(pattern), mask ));
     }
     virtual const char* name() const
     {
         return "DarthTon v2";
     }
 
-    char* pattern = "";
-    char* mask = "";
+    const char* pattern = nullptr;
+    const char* mask = nullptr;
 };
 
 REGISTER( DARTH_TON2 );
