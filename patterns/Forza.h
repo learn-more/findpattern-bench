@@ -79,56 +79,59 @@ uint8_t* FindEx(const uint8_t* Data, const uint32_t Length, const char* Signatur
 	auto out = static_cast<uint8_t*>(nullptr);
 	auto end = Data + Length - d.Size;
 
+	//C3010: 'break' : jump out of OpenMP structured block not allowed
 #pragma omp parallel for
 	for (intptr_t i = Length - 32; i >= 0; i -= 32)
 	{
-		if (out != nullptr)
-			break;
-
-		auto p = Data + i;
-		auto b = _mm256_loadu_si256((const __m256i*)p);
-
-		if (_mm256_test_all_zeros(b, b) == 1)
-			continue;
-
-		auto f = _mm_cmpestri(d.Value[0], d.Length[0], _mm256_extractf128_si256(b, 0), 16, _SIDD_CMP_EQUAL_ORDERED);
-
-		if (f == 16)
+		#pragma omp flush (out)
+		if (out == nullptr)
 		{
-			f += _mm_cmpestri(d.Value[0], d.Length[0], _mm256_extractf128_si256(b, 1), 16, _SIDD_CMP_EQUAL_ORDERED);
+			auto p = Data + i;
+			auto b = _mm256_loadu_si256((const __m256i*)p);
 
-			if (f == 32)
+			if (_mm256_test_all_zeros(b, b) == 1)
 				continue;
-		}
 
-	PossibleMatch:
-		p += f;
+			auto f = _mm_cmpestri(d.Value[0], d.Length[0], _mm256_extractf128_si256(b, 0), 16, _SIDD_CMP_EQUAL_ORDERED);
 
-		if (p + d.Size > end)
-		{
-			for (auto j = 0; j < d.Size && j + i + f < Length; j++)
+			if (f == 16)
 			{
-				if (Mask[j] == 'x' && (uint8_t)Signature[j] != p[j])
-					break;
+				f += _mm_cmpestri(d.Value[0], d.Length[0], _mm256_extractf128_si256(b, 1), 16, _SIDD_CMP_EQUAL_ORDERED);
 
-				if (j + 1 == d.Size)
-					out = (uint8_t*)p;
+				if (f == 32)
+					continue;
 			}
 
-			continue;
+		PossibleMatch:
+			p += f;
+
+			if (p + d.Size > end)
+			{
+				for (auto j = 0; j < d.Size && j + i + f < Length; j++)
+				{
+					if (Mask[j] == 'x' && (uint8_t)Signature[j] != p[j])
+						break;
+
+					if (j + 1 == d.Size)
+						out = (uint8_t*)p;
+				}
+
+				continue;
+			}
+
+			if (Matches(p, &d))
+				out = (uint8_t*)p;
+			#pragma omp flush (out)
+
+			if (out == nullptr)
+			{
+				p++;
+				f = _mm_cmpestri(d.Value[0], d.Length[0], _mm_loadu_si128((const __m128i*)p), 16, _SIDD_CMP_EQUAL_ORDERED);
+
+				if (f < 16)
+					goto PossibleMatch;
+			}
 		}
-
-		if (Matches(p, &d))
-			out = (uint8_t*)p;
-
-		if (out != nullptr)
-			break;
-
-		p++;
-		f = _mm_cmpestri(d.Value[0], d.Length[0], _mm_loadu_si128((const __m128i*)p), 16, _SIDD_CMP_EQUAL_ORDERED);
-
-		if (f < 16)
-			goto PossibleMatch;
 	}
 
 	return out;

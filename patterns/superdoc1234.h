@@ -3,7 +3,7 @@
 
 byte* FindPattern( byte* pBaseAddress, byte* pbMask, const char* pszMask, size_t nLength )
 {
-    auto DataCompare = []( const auto* pData, const auto* mask, const auto* cmask, auto chLast, size_t iEnd ) -> bool {
+    auto DataCompare = []( const byte* pData, const byte* mask, const char* cmask, byte chLast, size_t iEnd ) -> bool {
         if( pData[ iEnd ] != chLast ) return false;
         for( ; *cmask; ++cmask , ++pData , ++mask ) {
             if( *cmask == 'x' && *pData != *mask ) {
