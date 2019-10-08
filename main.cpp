@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 #include <algorithm>
+#include <emmintrin.h>
+#include <intrin.h>
 
 const char szPattern1[] = "\x45\x43\x45\x55\x33\x9a\xfa\x00\x00\x00\x00\x45\x68\x21";
 const size_t szPattern1Len = _countof(szPattern1) - 1;
