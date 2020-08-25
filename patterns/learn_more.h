@@ -21,7 +21,11 @@ namespace
 				if (!firstMatch) {
 					firstMatch = pCur;
 				}
-				pat += (*(PWORD)pat == (WORD)'\?\?' || *(PBYTE)pat != (BYTE)'\?') ? 3 : 2;
+				pat += (*(PWORD)pat == (WORD)'\?\?' || *(PBYTE)pat != (BYTE)'\?') ? 2 : 1;
+				if (!*pat) {
+					return firstMatch;
+				}
+				pat++;
 				if (!*pat) {
 					return firstMatch;
 				}
@@ -92,14 +96,18 @@ namespace
 		PBYTE msk = msk_base;
 		l = 0;
 		while (*pattern) {
+			if (*pattern == ' ')
+				pattern++;
+			if (!*pattern)
+				break;
 			if (*(PBYTE)pattern == (BYTE)'\?') {
 				*pat++ = 0;
 				*msk++ = '?';
-				pattern += ((*(PWORD)pattern == (WORD)'\?\?') ? 3 : 2);
+				pattern += ((*(PWORD)pattern == (WORD)'\?\?') ? 2 : 1);
 			} else {
 				*pat++ = getByte(pattern);
 				*msk++ = 'x';
-				pattern += 3;
+				pattern += 2;
 			}
 			l++;
 		}
