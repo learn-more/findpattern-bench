@@ -19,13 +19,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -106,6 +106,8 @@
     <ClInclude Include="patterns\MiKe.h" />
     <ClInclude Include="patterns\mrexodia.h" />
     <ClInclude Include="patterns\mrexodia_horspool.h" />
+    <ClInclude Include="patterns\stevemk14ebr.h" />
+    <ClInclude Include="patterns\superdoc1234.h" />
     <ClInclude Include="patterns\Trippe.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>

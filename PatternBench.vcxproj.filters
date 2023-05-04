@@ -64,5 +64,11 @@
     <ClInclude Include="patterns\Forza.h">
       <Filter>patterns</Filter>
     </ClInclude>
+    <ClInclude Include="patterns\superdoc1234.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="patterns\stevemk14ebr.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
