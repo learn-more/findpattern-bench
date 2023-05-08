@@ -91,7 +91,10 @@ namespace superdoc1234
 {
 #include "patterns/superdoc1234.h"
 }
-
+namespace stevemk14ebr
+{
+#include "patterns/stevemk14ebr.h"
+}
 int main()
 {
 	SYSTEM_INFO si;
