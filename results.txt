@@ -1,30 +1,68 @@
 FindPattern benchmark
-Page size: 4096, allocating 22 pages (including 2 guard pages).
-Running tests on 11 different implementations
+Page size: 4096, allocating 64 pages (including 2 guard pages).
+Running tests on 16 different implementations
 ===========
 Running learn_more
-Finding pattern 0 x 1000 took 110.641 ms.
-Finding pattern 1 x 1000 took 114.394 ms.
+Finding pattern 0 x 1024 took 302.044 ms.
+Finding pattern 1 x 1024 took 346.211 ms.
 ===========
 Running learn_more v2
-Finding pattern 0 x 1000 took 65.951 ms.
-Finding pattern 1 x 1000 took 64.329 ms.
+Finding pattern 0 x 1024 took 221.088 ms.
+Finding pattern 1 x 1024 took 228.989 ms.
 ===========
 Running fdsasdf
-Finding pattern 0 x 1000 took 41.027 ms.
-Finding pattern 1 x 1000 took 46.177 ms.
+Finding pattern 0 x 1024 took 114.687 ms.
+Finding pattern 1 x 1024 took 114.541 ms.
 ===========
 Running DarthTon
-Finding pattern 0 x 1000 took 57.216 ms.
-Finding pattern 1 x 1000 took 55 ms.
+Finding pattern 0 x 1024 took 204.667 ms.
+Finding pattern 1 x 1024 took 203.078 ms.
+===========
+Running DarthTon v2
+Finding pattern 0 x 1024 took 7.357 ms.
+Failed to find pattern.
+===========
+Running Forza (Boyer-Moore Variant)
+Finding pattern 0 x 1024 took 33.697 ms.
+Finding pattern 1 x 1024 took 18.559 ms.
+===========
+Running Forza (SIMD With OpenMP)
+Finding pattern 0 x 1024 took 7.939 ms.
+Finding pattern 1 x 1024 took 7.977 ms.
 ===========
 Running kokole
-Finding pattern 0 x 1000 took 82.584 ms.
-Finding pattern 1 x 1000 took 82.682 ms.
+Finding pattern 0 x 1024 took 283.861 ms.
+Finding pattern 1 x 1024 took 247.009 ms.
 ===========
 Running mrexodia
-Finding pattern 0 x 1000 took 168.294 ms.
-Finding pattern 1 x 1000 took 170.249 ms.
+Finding pattern 0 x 1024 took 586.1 ms.
+Finding pattern 1 x 1024 took 575.988 ms.
 ===========
 Running atom0s
-Finding pattern 0 x 1000 took 399.762 ms.
+Finding pattern 0 x 1024 took 205.192 ms.
+Finding pattern 1 x 1024 took 206.072 ms.
+===========
+Running atom0s (mrexodia modification)
+Finding pattern 0 x 1024 took 770.428 ms.
+Finding pattern 1 x 1024 took 772.747 ms.
+===========
+Running mrexodia (horspool)
+Finding pattern 0 x 1024 took 59.797 ms.
+Finding pattern 1 x 1024 took 46.575 ms.
+===========
+Running dom1n1k_Patrick
+Finding pattern 0 x 1024 took 247.113 ms.
+Finding pattern 1 x 1024 took 247.272 ms.
+===========
+Running Michael
+Finding pattern 0 x 1024 took 117.219 ms.
+Finding pattern 1 x 1024 took 116.356 ms.
+===========
+Running superdoc1234
+Finding pattern 0 x 1024 took 115.159 ms.
+Finding pattern 1 x 1024 took 115.21 ms.
+===========
+Running stevemk14ebr
+Finding pattern 0 x 1024 took 433.477 ms.
+Finding pattern 1 x 1024 took 455.15 ms.
+Done.
