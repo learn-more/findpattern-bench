@@ -70,5 +70,11 @@
     <ClInclude Include="patterns\stevemk14ebr.h">
       <Filter>patterns</Filter>
     </ClInclude>
+    <ClInclude Include="patterns\TBS.hpp">
+      <Filter>patterns</Filter>
+    </ClInclude>
+    <ClInclude Include="TBSBench.h">
+      <Filter>patterns</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
