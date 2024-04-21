@@ -12,8 +12,8 @@ namespace TBS {
 		virtual LPVOID runOne(PBYTE baseAddress, DWORD size);
 		virtual const char* name() const;
 
-		TBS::State state;
-		TBS::Pattern::DescriptionBuilder templateBuilder;
+		TBS::State<> state;
+		TBS::Pattern::DescriptionBuilder<> templateBuilder;
 		const char* currPattern;
 	};
 
