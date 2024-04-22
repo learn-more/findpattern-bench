@@ -63,10 +63,16 @@
 #endif
 
 #ifdef TBS_IMPL_SSE2
+#ifndef TBS_IMPL_ARCH_WORD_SIMD
+#define TBS_IMPL_ARCH_WORD_SIMD
+#endif
 #include <emmintrin.h>
 #endif
 
 #ifdef TBS_IMPL_AVX
+#ifndef TBS_IMPL_ARCH_WORD_SIMD
+#define TBS_IMPL_ARCH_WORD_SIMD
+#endif
 #include <immintrin.h>
 #endif
 
@@ -221,15 +227,13 @@ namespace TBS {
 			return (high << 4) | low;
 		}
 
-		inline bool CompareWithMaskByte(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* wildCardMask)
+		inline bool CompareWithMaskByte(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* compareMask)
 		{
-			if ((chunk1[0] & ~wildCardMask[0]) != (chunk2[0] & ~wildCardMask[0]))
-				return false;
 
 			for (size_t i = 0; i < len; i++)
 			{
-				UByte b1 = chunk1[i] & ~wildCardMask[i];
-				UByte b2 = chunk2[i] & ~wildCardMask[i];
+				UByte b1 = chunk1[i] & compareMask[i];
+				UByte b2 = chunk2[i] & compareMask[i];
 
 				if (b1 != b2)
 					return false;
@@ -239,18 +243,15 @@ namespace TBS {
 		}
 
 #ifdef TBS_IMPL_ARCH_WORD_SIMD
-		inline bool CompareWithMaskWord(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* wildCardMask) {
-			if ((chunk1[0] & ~wildCardMask[0]) != (chunk2[0] & ~wildCardMask[0]))
-				return false;
-
+		inline bool CompareWithMaskWord(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* compareMask) {
 			// UPtr ==> Platform Word Length
 			size_t wordLen = len / sizeof(UPtr); // Calculate length in words
 
 			for (size_t i = 0; i < wordLen; i++) {
 				// Convert byte index to word index
-				UPtr wordMask = ~*((const UPtr*)wildCardMask + i);
-				UPtr maskedChunk1 = *((const UPtr*)chunk1 + i) & wordMask;
-				UPtr maskedChunk2 = *((const UPtr*)chunk2 + i) & wordMask;
+				const UPtr wordMask = *((const UPtr*)compareMask + i);
+				const UPtr maskedChunk1 = *((const UPtr*)chunk1 + i) & wordMask;
+				const UPtr maskedChunk2 = *((const UPtr*)chunk2 + i) & wordMask;
 				if (maskedChunk1 != maskedChunk2)
 					return false;
 			}
@@ -263,30 +264,20 @@ namespace TBS {
 			// Calculate the starting index of the last incomplete word
 			size_t lastWordIndex = wordLen * sizeof(UPtr);
 			return CompareWithMaskByte(
-				chunk1 + lastWordIndex, chunk2 + lastWordIndex, len - lastWordIndex, wildCardMask + lastWordIndex);
+				chunk1 + lastWordIndex, chunk2 + lastWordIndex, len - lastWordIndex, compareMask + lastWordIndex);
 		}
 #endif
 
 #ifdef TBS_IMPL_SSE2
 		namespace SSE2 {
-			inline __m128i _mm_not_si128(__m128i value)
-			{
-				__m128i mask = _mm_set1_epi32(-1);
-				return _mm_xor_si128(value, mask);
-			}
-
-			inline bool CompareWithMask(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* wildCardMask) {
-
-				if ((chunk1[0] & ~wildCardMask[0]) != (chunk2[0] & ~wildCardMask[0]))
-					return false;
-
+			inline bool CompareWithMask(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* compareMask) {
 				const size_t wordLen = len / sizeof(__m128i); // Calculate length in words
 
 				for (size_t i = 0; i < wordLen; i++) {
 					// Convert byte index to word index
-					__m128i wordMask = _mm_not_si128(_mm_load_si128((const __m128i*)wildCardMask + i));
-					__m128i maskedChunk1 = _mm_and_si128(_mm_load_si128((const __m128i*)chunk1 + i), wordMask);
-					__m128i maskedChunk2 = _mm_and_si128(_mm_load_si128((const __m128i*)chunk2 + i), wordMask);
+					const __m128i wordMask = _mm_load_si128((const __m128i*) compareMask + i);
+					const __m128i maskedChunk1 = _mm_and_si128(_mm_load_si128((const __m128i*)chunk1 + i), wordMask);
+					const __m128i maskedChunk2 = _mm_and_si128(_mm_load_si128((const __m128i*)chunk2 + i), wordMask);
 
 					if (_mm_movemask_epi8(_mm_cmpeq_epi32(maskedChunk1, maskedChunk2)) != 0xFFFF)
 						return false;
@@ -299,7 +290,7 @@ namespace TBS {
 
 				const size_t lastWordIndex = wordLen * sizeof(__m128i);
 
-				return CompareWithMaskWord(chunk1 + lastWordIndex, chunk2 + lastWordIndex, len % sizeof(__m128i), wildCardMask + lastWordIndex);
+				return CompareWithMaskWord(chunk1 + lastWordIndex, chunk2 + lastWordIndex, len % sizeof(__m128i), compareMask + lastWordIndex);
 			}
 		}
 #endif
@@ -308,25 +299,16 @@ namespace TBS {
 #ifdef TBS_IMPL_AVX
 		namespace AVX
 		{
-			inline __m256i _mm256_not_si256(__m256i value)
+			inline bool CompareWithMask(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* compareMask)
 			{
-				__m256i mask = _mm256_set1_epi32(-1);
-				return _mm256_xor_si256(value, mask);
-			}
-
-			inline bool CompareWithMask(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* wildCardMask)
-			{
-				if ((chunk1[0] & ~wildCardMask[0]) != (chunk2[0] & ~wildCardMask[0]))
-					return false;
-
 				const size_t wordLen = len / sizeof(__m256i); // Calculate length in words
 
 				for (size_t i = 0; i < wordLen; i++)
 				{
 					// Convert byte index to word index
-					__m256i wordMask = _mm256_not_si256(_mm256_load_si256((const __m256i*) wildCardMask + i));
-					__m256i maskedChunk1 = _mm256_and_si256(_mm256_load_si256((const __m256i*) chunk1 + i), wordMask);
-					__m256i maskedChunk2 = _mm256_and_si256(_mm256_load_si256((const __m256i*) chunk2 + i), wordMask);
+					const __m256i wordMask = _mm256_load_si256((const __m256i*) compareMask + i);
+					const __m256i maskedChunk1 = _mm256_and_si256(_mm256_load_si256((const __m256i*) chunk1 + i), wordMask);
+					const __m256i maskedChunk2 = _mm256_and_si256(_mm256_load_si256((const __m256i*) chunk2 + i), wordMask);
 
 					if (_mm256_movemask_epi8(_mm256_cmpeq_epi64(maskedChunk1, maskedChunk2)) != 0xFFFFFFFF)
 						return false;
@@ -340,22 +322,22 @@ namespace TBS {
 				const size_t lastWordIndex = wordLen * sizeof(__m256i);
 
 				return SSE2::CompareWithMask(chunk1 + lastWordIndex, chunk2 + lastWordIndex, len % sizeof(__m256i),
-					wildCardMask + lastWordIndex);
+					compareMask + lastWordIndex);
 			}
 		} // namespace AVX
 #endif
 
 
-		inline bool CompareWithMask(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* wildCardMask)
+		inline bool CompareWithMask(const UByte* chunk1, const UByte* chunk2, size_t len, const UByte* compareMask)
 		{
 #ifdef TBS_USE_AVX
-			return AVX::CompareWithMask(chunk1, chunk2, len, wildCardMask);
+			return AVX::CompareWithMask(chunk1, chunk2, len, compareMask);
 #elif TBS_USE_SSE2
-			return SSE2::CompareWithMask(chunk1, chunk2, len, wildCardMask);
+			return SSE2::CompareWithMask(chunk1, chunk2, len, compareMask);
 #elif defined(TBS_USE_ARCH_WORD_SIMD)
-			return CompareWithMaskWord(chunk1, chunk2, len, wildCardMask);
+			return CompareWithMaskWord(chunk1, chunk2, len, compareMask);
 #else 
-			return CompareWithMaskByte(chunk1, chunk2, len, wildCardMask);
+			return CompareWithMaskByte(chunk1, chunk2, len, compareMask);
 #endif
 		}
 
@@ -460,7 +442,7 @@ namespace TBS {
 		struct ParseResult {
 			inline ParseResult()
 				: mParseSuccess(false)
-				, mFirstSolidOff(0)
+				, mFirstSolidOff(-1)
 			{}
 
 			inline operator bool()
@@ -469,21 +451,9 @@ namespace TBS {
 			}
 
 			Vector<UByte> mPattern;
-			Vector<UByte> mWildcardMask;
+			Vector<UByte> mCompareMask;
 			bool mParseSuccess;
-			U32 mFirstSolidOff;
-			U32 mFirstSolidOffAlign;
-			U32 mFirstSolidOffAlignPatternLen;
-
-			inline const UByte* getPatternFirstSolidAlignEntry()
-			{
-				return mPattern.data() + mFirstSolidOffAlign;
-			}
-
-			inline const UByte* getMaskFirstSolidAlignEntry()
-			{
-				return mWildcardMask.data() + mFirstSolidOffAlign;
-			}
+			int mFirstSolidOff;
 		};
 
 		static bool Parse(const void* _pattern, const char* mask, ParseResult& result)
@@ -496,10 +466,10 @@ namespace TBS {
 			size_t patternLen = StringLength(mask);
 
 			result.mPattern.resize(patternLen);
-			result.mWildcardMask.resize(patternLen);
+			result.mCompareMask.resize(patternLen);
 
 			memcpy(result.mPattern.data(), _pattern, patternLen);
-			memset(result.mWildcardMask.data(), 0x00, patternLen);
+			memset(result.mCompareMask.data(), 0xFF, patternLen);
 
 			bool bFirstSolidFound = false;
 
@@ -508,21 +478,19 @@ namespace TBS {
 				if (mask[i] == '?')
 				{
 					result.mPattern[i] = 0x00;
-					result.mWildcardMask[i] = 0xFF;
+					result.mCompareMask[i] = 0x00;
 
 					continue;
 				}
 
-				if (bFirstSolidFound)
+				if (result.mFirstSolidOff != -1)
 					continue;
 
 				result.mFirstSolidOff = i;
-
-				bFirstSolidFound = true;
 			}
 
-			result.mFirstSolidOffAlign = NumberAlignToFloor(result.mFirstSolidOff, sizeof(TBS::UPtr));
-			result.mFirstSolidOffAlignPatternLen = result.mPattern.size() - result.mFirstSolidOffAlign;
+			if (result.mFirstSolidOff == -1)
+				result.mFirstSolidOff = 0;
 
 			return result.mParseSuccess = true;
 		}
@@ -555,11 +523,8 @@ namespace TBS {
 				bool bAnyWildCard = str.find("?") != String<>::npos;
 				bool bFullByteWildcard = str.find("??") != String<>::npos || (bAnyWildCard && str.size() == 1);
 
-				if (!bFirstSolidFound && !bFullByteWildcard)
-				{
+				if (!bFullByteWildcard && result.mFirstSolidOff == -1)
 					result.mFirstSolidOff = i;
-					bFirstSolidFound = true;
-				}
 
 				// At this point, current Byte is wildcarded
 
@@ -567,7 +532,7 @@ namespace TBS {
 				{
 					// At this point we are dealing with Full Byte Wildcard Case
 					result.mPattern.emplace_back(UByte(0x00u));
-					result.mWildcardMask.emplace_back(UByte(0xFFu));
+					result.mCompareMask.emplace_back(UByte(0x00u));
 					continue;
 				}
 
@@ -575,7 +540,7 @@ namespace TBS {
 				{
 					// Not Wilcarding this byte
 					result.mPattern.emplace_back(Memory::ByteFromString(str.c_str()));
-					result.mWildcardMask.emplace_back(UByte(0x00ull));
+					result.mCompareMask.emplace_back(UByte(0xFFull));
 					continue;
 				}
 
@@ -586,18 +551,18 @@ namespace TBS {
 					// At this point, we are dealing with High Part of Byte wildcarding "?X"
 					str[0] = '0';
 					result.mPattern.emplace_back(Memory::ByteFromString(str.c_str()));
-					result.mWildcardMask.emplace_back(UByte(0xF0u));
+					result.mCompareMask.emplace_back(UByte(0x0Fu));
 					continue;
 				}
 
 				// At this point, we are dealing with Low Part of Byte wildcarding "X?"
 				str[1] = '0';
 				result.mPattern.emplace_back(Memory::ByteFromString(str.c_str()));
-				result.mWildcardMask.emplace_back(UByte(0x0Fu));
+				result.mCompareMask.emplace_back(UByte(0xF0u));
 			}
 
-			result.mFirstSolidOffAlign = NumberAlignToFloor(result.mFirstSolidOff, sizeof(TBS::UPtr));
-			result.mFirstSolidOffAlignPatternLen = result.mPattern.size() - result.mFirstSolidOffAlign;
+			if (result.mFirstSolidOff == -1)
+				result.mFirstSolidOff = 0;
 
 			return result.mParseSuccess = true;
 		}
@@ -721,16 +686,19 @@ namespace TBS {
 
 			Description::SearchSlice currSearchnigRange = (*desc.mCurrentSearchRange);
 
+			const auto firstWildcard = desc.mParsed.mCompareMask.at(desc.mParsed.mFirstSolidOff);
+			const auto firstPatternByte = desc.mParsed.mPattern.at(desc.mParsed.mFirstSolidOff) & firstWildcard;
+
 			for (const UByte*& i = desc.mLastSearchPos; i + patternLen - 1 < currSearchnigRange.mEnd; i++)
 			{
 				if (desc.mShared.mFinished)
 					return false;
 
-				if (Memory::CompareWithMask(
-					i,
-					desc.mParsed.getPatternFirstSolidAlignEntry(),
-					desc.mParsed.mFirstSolidOffAlignPatternLen,
-					desc.mParsed.getMaskFirstSolidAlignEntry()
+				if ((*(i + desc.mParsed.mFirstSolidOff) & firstWildcard) != firstPatternByte)
+					continue;
+
+				if (Memory::CompareWithMask(i, desc.mParsed.mPattern.data(), desc.mParsed.mPattern.size(),
+					desc.mParsed.mCompareMask.data()
 				) == false)
 					continue;
 
@@ -1017,5 +985,72 @@ namespace TBS {
 		outResult = state[pattern];
 
 		return true;
+	}
+
+	namespace Light {
+		template<typename T>
+		inline bool Scan(T _start, T _end, Pattern::Results& results, const void* pattern, const char* mask)
+		{
+			results.clear();
+
+			const UByte* start = (decltype(start))_start;
+			const UByte* end = (decltype(end))_end;
+
+			Pattern::ParseResult parse;
+
+			if (Pattern::Parse(pattern, mask, parse) == false)
+				return false;
+
+
+			const auto firstWildcard = parse.mCompareMask.at(parse.mFirstSolidOff);
+			const auto firstPatternByte = parse.mPattern.at(parse.mFirstSolidOff) & firstWildcard;
+
+			for (const UByte* i = start; i + parse.mPattern.size() < end; i++)
+			{
+				if ((*(i + parse.mFirstSolidOff) & firstWildcard) != firstPatternByte)
+					continue;
+
+				if (!Memory::CompareWithMask(
+					i, parse.mPattern.data(), parse.mPattern.size(), parse.mCompareMask.data()))
+					continue;
+
+				results.push_back((TBS_RESULT_TYPE)i);
+			}
+
+			return results.empty() == false;
+		}
+
+		template<typename T>
+		inline bool ScanOne(T _start, T _end, Pattern::Result& results, const void* pattern, const char* mask)
+		{
+			results = (TBS_RESULT_TYPE)0;
+
+			const UByte* start = (decltype(start))_start;
+			const UByte* end = (decltype(end))_end;
+
+			Pattern::ParseResult parse;
+
+			if (Pattern::Parse(pattern, mask, parse) == false)
+				return false;
+
+
+			const auto firstWildcard = parse.mCompareMask.at(parse.mFirstSolidOff);
+			const auto firstPatternByte = parse.mPattern.at(parse.mFirstSolidOff) & firstWildcard;
+
+			for (const UByte* i = start; i + parse.mPattern.size() < end; i++)
+			{
+				if ((*(i + parse.mFirstSolidOff) & firstWildcard) != firstPatternByte)
+					continue;
+
+				if (!Memory::CompareWithMask(
+					i, parse.mPattern.data(), parse.mPattern.size(), parse.mCompareMask.data()))
+					continue;
+
+				results = (TBS_RESULT_TYPE)i;
+				break;
+			}
+
+			return results != (TBS_RESULT_TYPE)0;
+		}
 	}
 }
