@@ -3,3 +3,4 @@ PatternBench.sdf
 Release/
 Debug/
 *.suo
+.vs/*

@@ -95,6 +95,9 @@ namespace stevemk14ebr
 {
 #include "patterns/stevemk14ebr.h"
 }
+
+#include "TBSBench.h"
+
 int main()
 {
 	SYSTEM_INFO si;
